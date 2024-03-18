@@ -1,9 +1,6 @@
 # MacOS system files
 .DS_Store
 
-# misc
-*.pdf
-
 # python
 *.pyc
 __pycache__
