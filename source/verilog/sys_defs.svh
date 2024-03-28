@@ -23,6 +23,28 @@
 // superscalar width
 `define N 1
 
+// // xxxxx
+// `define SUPERSCALAR_WAYS	  3
+// `define N_PHYS_REG	  	  	  64
+// `define N_ARCH_REG	  	  	  32
+// `define N_RS_ENTRIES		  16
+// `define N_ROB_ENTRIES		  32
+// `define N_LSQ_ENTRIES 		  8
+
+// `define SUPERSCALAR_WAYS_BITS $clog2(`SUPERSCALAR_WAYS)
+// `define N_PHYS_REG_BITS   	  $clog2(`N_PHYS_REG)
+// `define N_ARCH_REG_BITS       $clog2(`N_ARCH_REG)
+// `define N_RS_ENTRIES_BITS	  $clog2(`N_RS_ENTRIES)
+// `define N_ROB_ENTRIES_BITS	  $clog2(`N_ROB_ENTRIES)
+// `define N_LSQ_ENTRIES_BITS	  $clog2(`N_LSQ_ENTRIES)
+
+// `define N_ALU_UNITS			  3
+// `define N_MULT_UNITS		  2
+// `define N_LS_UNITS			  2
+// `define N_BR_UNITS			  1
+// `define N_FU_UNITS			  `N_ALU_UNITS + `N_MULT_UNITS + `N_LS_UNITS + `N_BR_UNITS
+// `define N_FU_UNITS_BITS		  $clog2(`N_FU_UNITS)
+
 // sizes
 `define ROB_SZ xx
 `define RS_SZ xx
@@ -33,10 +55,10 @@
 `define LSQ_SZ xx
 
 // functional units (you should decide if you want more or fewer types of FUs)
-`define NUM_FU_ALU xx
-`define NUM_FU_MULT xx
-`define NUM_FU_LOAD xx
-`define NUM_FU_STORE xx
+`define NUM_FU_ALU 2'b00
+`define NUM_FU_MULT 2'b01
+`define NUM_FU_LOAD 2'b10
+`define NUM_FU_STORE 2'b11
 
 // number of mult stages (2, 4, or 8)
 `define MULT_STAGES 4
@@ -355,5 +377,49 @@ typedef struct packed {
 /**
  * No WB output packet as it would be more cumbersome than useful
  */
+
+
+
+////////////////////////////////////
+// ---- R10K Data Structures ---- //
+////////////////////////////////////
+
+// Reservation Stations related packets
+
+// typedef struct packed {
+//     logic [`N_PHYS_REG_BITS-1:0] t_idx;
+// } CDB_PACKET;
+
+// typedef struct packed{
+//     logic alu_1;
+//     logic alu_2;
+//     logic alu_3;
+//     logic mult_1;
+//     logic mult_2;
+//     logic branch_1;
+// } FU_RS_PACKET;
+
+typedef struct packed {
+    logic [7:0] reg_num;
+    logic reg_ready;
+} REG;
+
+typedef struct packed {
+    INST inst;
+    REG dest_reg;
+    REG src1_reg;
+    REG src2_reg;
+} RS_PACKET;
+
+input_packet.funit = ALU;
+        input_packet.inst = 34;
+        input_packet.dest_reg.reg_num = 7;
+        input_packet.dest_reg.ready = 0;
+
+        input_packet.src1_reg.reg_num = 4;
+        input_packet.src1_reg.ready = 1;
+        
+        input_packet.src2_reg.reg_num = 0;
+        input_packet.src2_reg.ready = 1;
 
 `endif // __SYS_DEFS_SVH__
