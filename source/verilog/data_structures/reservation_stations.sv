@@ -16,7 +16,7 @@ module reservation_station (
     output logic [4:0] issue_index,
 
     /* Freeing */
-    input [4:0] free;
+    input [4:0] free
 );
 
     RS_PACKET entries, next_entries [4:0];
@@ -85,8 +85,9 @@ module reservation_station (
             entries[2].fu <= FU_STORE;
             entries[3].fu <= FU_MULT;
             entries[4].fu <= FU_MULT;
+
             entry_busy <= 0;
-            both_reg_ready <= 0;
+
             issue_index <= 0;
 
 		end
@@ -100,7 +101,7 @@ module reservation_station (
                 allocate_done <=1;
             end
 
-            if (issue_ready && issue_enable) begin
+            if (ready_issue && issue_enable) begin
                 issued_packet <= entries[issue_index_next];
             end
 

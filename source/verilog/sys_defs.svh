@@ -407,16 +407,16 @@ typedef struct packed {
 // } FU_RS_PACKET;
 
 typedef struct packed {
-    logic [7:0] reg_num;
-    logic reg_ready;
+    logic [7:0] num;
+    logic ready;
 } REG;
 
 typedef struct packed {
     FU_TYPE fu;
     INST inst;
-    REG dest_reg;
-    REG src1_reg;
-    REG src2_reg;
+    REG dest_tag;
+    REG tag1;
+    REG tag2;
 } RS_PACKET;
 
 `endif // __SYS_DEFS_SVH__
