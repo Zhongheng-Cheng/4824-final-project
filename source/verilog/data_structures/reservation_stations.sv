@@ -2,37 +2,31 @@ module reservation_station (
     input clock, reset,
 
     /* Allocating */
-    input RS_PACKET input_packet,
-    output logic done,
+    input RS_PACKET packet_in,
+    output logic allocate_done,
 
     /* Updating given PREG (from CDB) */
-    input update,
-    input logic [8:0] ready_reg,
+    input cdb_ready,
+    input REG cdb_tag,
 
     /* Issuing */
     input logic issue_enable,
     output logic ready_issue,
     output RS_PACKET issued_packet,
-    output logic [`MAX_FU_INDEX-1:0] issue_fu_index,
+    output logic [4:0] issue_index,
 
     /* Freeing */
     input [4:0] free;
-    // input [`NUM_FU_ALU-1:0] free_alu.
-    // input [`NUM_FU_MULT-1:0] free_mult,
-    // input [`NUM_FU_LOAD-1:0] free_load,
-    // input [`NUM_FU_STORE-1:0] free_store
-    
-    // input logic [`MAX FU INDEX-1:0] free fu index,
-    // input FUNIT free funit
 );
 
     RS_PACKET entries, next_entries [4:0];
-    logic entry_busy [4:0];
+    logic entry_busy,entry_busy_next [4:0];
     logic allocate, allocate_index;
+    logic [4:0] issue_index_next;
 
     always_comb begin
         allocate = 0;
-        case (input_packet.fu)
+        case (packet_in.fu)
             FU_ALU: begin
                 if (!entry_busy[0]) begin
                     allocate = 1;
@@ -65,20 +59,23 @@ module reservation_station (
     end
 
     always_comb begin 
+        entry_busy_next = entry_busy; 
         for(int i=0; i<5; i++)begin
             if(free[i]) begin
-                entry_busy[i] = 0;
+                entry_busy_next[i] = 0;
             end
         end
     end
 
-    logic [4:0] both_reg_ready;
     always_comb begin
+        issue_index_next = 5'b0;
+
         for (int i = 0; i < 5; i++) begin
-            if (entries[i].src1_reg.reg_ready && entries[i].src2_reg.reg_ready) 
-                both_reg_ready[i] = 1;
+            if (entries[i].tag1.reg_ready && entries[i].tag2.reg_ready) 
+                issue_index_next[i] = 1;
         end
     end
+
 
     always_ff @(posedge clock) begin
 		if(reset) begin
@@ -90,12 +87,29 @@ module reservation_station (
             entries[4].fu <= FU_MULT;
             entry_busy <= 0;
             both_reg_ready <= 0;
+            issue_index <= 0;
+
 		end
+
 		else begin
+            issue_index <= issue_index_next;
+            entry_busy <= entry_busy_next;
+
 			if (allocate) begin
-                entries[allocate_index] <= input_packet;
+                entries[allocate_index] <= packet_in;
+                allocate_done <=1;
             end
-            if (issue_enable && entries)
+
+            if (issue_ready && issue_enable) begin
+                issued_packet <= entries[issue_index_next];
+            end
+
+            if(cdb_ready)begin
+                for(int i=0; i<5; i++)begin
+                    if(entries.tag1.num == cdb_tag.num) entries.tag1.ready <= 1;
+                    if(entries.tag2.num == cdb_tag.num) entries.tag2.ready <= 1;
+                end
+            end
             
 		end	
 	end
