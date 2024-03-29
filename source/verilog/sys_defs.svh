@@ -54,11 +54,18 @@
 `define BRANCH_PRED_SZ xx
 `define LSQ_SZ xx
 
+typedef enum logic [1:0] {FU_ALU, FU_MULT, FU_LOAD, FU_STORE} FU_TYPE;
+
+// `define FU_ALU 2'b00;
+// `define FU_MULT 2'b01;
+// `define FU_LOAD 2'b10;
+// `define FU_STORE 2'b11;
+
 // functional units (you should decide if you want more or fewer types of FUs)
-`define NUM_FU_ALU 2'b00
-`define NUM_FU_MULT 2'b01
-`define NUM_FU_LOAD 2'b10
-`define NUM_FU_STORE 2'b11
+`define NUM_FU_ALU 2'b01
+`define NUM_FU_MULT 2'b10
+`define NUM_FU_LOAD 2'b01
+`define NUM_FU_STORE 2'b01
 
 // number of mult stages (2, 4, or 8)
 `define MULT_STAGES 4
@@ -405,21 +412,11 @@ typedef struct packed {
 } REG;
 
 typedef struct packed {
+    FU_TYPE fu;
     INST inst;
     REG dest_reg;
     REG src1_reg;
     REG src2_reg;
 } RS_PACKET;
-
-input_packet.funit = ALU;
-        input_packet.inst = 34;
-        input_packet.dest_reg.reg_num = 7;
-        input_packet.dest_reg.ready = 0;
-
-        input_packet.src1_reg.reg_num = 4;
-        input_packet.src1_reg.ready = 1;
-        
-        input_packet.src2_reg.reg_num = 0;
-        input_packet.src2_reg.ready = 1;
 
 `endif // __SYS_DEFS_SVH__
