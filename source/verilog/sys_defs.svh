@@ -86,32 +86,6 @@
 `define MEM_SIZE_IN_BYTES (64*1024)
 `define MEM_64BIT_LINES   (`MEM_SIZE_IN_BYTES/8)
 
-/*------------------------------------Debug use------------------------------------*/
-`define DEBUG 1
-// `define VDEBUG 0
-`define CHECK(val_1, val_2) assert(val_1 == val_2) else begin $display("Assertion Error: The input value is %h, instead of %h", val_1, val_2); error=1; end
-`define NEXT_CYCLE @(negedge clk)
-
-/*------------------------------------Module Parameters------------------------------------*/
-`define PREG_NUMBER `ARCHREG_NUMBER + `ROB_SIZE // number of physical registers = architecture registers + ROB size
-`define ARCHREG_NUMBER 32 // depends on ISA
-`define ROB_SIZE 32 // design choice
-`define RS_LENGTH 4 // design choice
-`define FREELIST_SIZE `ROB_SIZE // size of free list = ROB size
-`define FU_NUMBER 5
-`define BRANCH_BUFFER_SIZE 32
-`define FETCH_BUFFER_SIZE 16
-
-`define SUPERSCALE_WIDTH 2
-`define CDB_SIZE `SUPERSCALE_WIDTH
-`define TABLE_SIZE `ARCHREG_NUMBER
-`define TABLE_READ `SUPERSCALE_WIDTH*2
-`define TABLE_WRITE `SUPERSCALE_WIDTH
-`define LSQ_SIZE 32
-`define BTB_SIZE 4
-
-
-
 typedef union packed {
     logic [7:0][7:0]  byte_level;
     logic [3:0][15:0] half_level;
@@ -289,55 +263,6 @@ typedef enum logic [4:0] {
     ALU_REM     = 5'h10, // unused
     ALU_REMU    = 5'h11  // unused
 } ALU_FUNC;
-
-
-//////////////////////////////////////////////
-// ----   OoO Data Structure Packets   ---- //
-//////////////////////////////////////////////
-typedef struct packed {
-	logic tag_1_ready;
-	logic tag_2_ready;
-	RS_FU_PACKET fu_packet;
-	logic RS_valid;
-} RS_ENTRY;
-
-typedef struct packed {
-	logic [6:0] opcode;
-	ALU_OPA_SELECT opa_select;
-	ALU_OPB_SELECT opb_select;
-	ALU_FUNC alu_opcode;
-	logic rd_mem;
-	logic wr_mem;
-	logic cond_branch;
-	logic uncond_branch;
-	logic csr_op;
-	logic halt;     
-	logic illegal;
-	DEST_REG_SEL dest_reg_sel;
-	logic [31:0] extra_slot_a;
-	logic [31:0] extra_slot_b;
-	logic [2:0] blu_opcode;
-	logic [31:0] PC;
-	logic [31:0] NPC;
-	logic [4:0] rs1; // fix
-    logic [4:0] rs2;
-	logic [2:0] mem_funct;
-	logic [6:0] funct7;
-} DECODE_NOREG_PACKET;
-
-typedef enum logic [1:0] {
-	MORE_LEFT = 2'h0,
-	ONE_LEFT  = 2'h1,
-	FULL      = 2'h2,
-	ILLEGAL = 2'h3
-} STRUCTURE_FULL;
-
-typedef struct packed {
-	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_1;
-	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_2;
-	logic [$clog2(`PREG_NUMBER)-1: 0] dest_tag;
-	DECODE_NOREG_PACKET decode_noreg_packet;
-} RS_FU_PACKET;
 
 ////////////////////////////////
 // ---- Datapath Packets ---- //
