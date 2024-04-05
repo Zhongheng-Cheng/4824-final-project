@@ -24,6 +24,7 @@ module reservation_station (
     logic entry_busy_next [4:0];
     logic allocate, allocate_index;
     logic [4:0] issue_index_next;
+    logic ready_to_issue;
 
     always_comb begin
         allocate = 0;
@@ -70,17 +71,22 @@ module reservation_station (
 
     always_comb begin
         //issue_index_next = 5'b0;
-
+        ready_issue = 1'b1;
         for (int i = 0; i < 5; i++) begin
             if (entries[i].tag1.ready && entries[i].tag2.ready) 
                 issue_index_next[i] = 1'b1;
             else begin
                 issue_index_next[i] = 1'b0;
             end
+            if (entries[i].tag1.ready != 1'b1 || entries[i].tag2.ready != 1'b1 || reset ) begin
+                ready_issue = 1'b0;
+            end
+
         end
     end
 
-
+  
+    
     always_ff @(posedge clock) begin
 		if(reset) begin
             entries <= {0,0,0,0,0};
@@ -93,7 +99,6 @@ module reservation_station (
            entry_busy <= '{5{1'b0}}; 
 
             issue_index <= '{5{1'b0}};
-            ready_issue <= 1'b0;
 		end
 
 		else begin
