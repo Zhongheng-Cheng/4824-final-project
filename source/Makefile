@@ -63,7 +63,7 @@ MODULE_SIMFILES = verilog/data_structures/reorder_buffer.sv
 MODULE_HEADER = verilog/sys_defs.svh
 MODULE_TCL = null
 MODULE_SYN = null
-MODULE_PRINT = null
+MODULE_PRINT = null																																																																																																																					
 
 
 # SYNTHESIS CONFIG
