@@ -20,17 +20,16 @@ module rob(
 	input [1:0][$clog2(`PREG_NUMBER)-1:0] preg_tag_old_i,   // D, old tag of dest physical register, from Map Table
 	input ROB_RETIRE_PACKET [1:0] retire_packet_i,
 	input [1:0][$clog2(`PREG_NUMBER)-1:0] freeReg_i,        // D, renamed tag, from Freelist
-	input [1:0][$clog2(`PREG_NUMBER)-1: 0] CDB_i,           // C, from CDB
+	input [1:0][$clog2(`PREG_NUMBER)-1:0] CDB_i,           // C, from CDB
 	input [1:0] CDB_en_i,
 
 	input [1:0] branch_recover_i,                            // C
-
 
 	output logic [1:0][$clog2(`PREG_NUMBER)-1:0] T_o,       // R, tag updated in tail, to Arch Table       
     output logic [1:0][$clog2(`PREG_NUMBER)-1:0] T_old_o,   // R, retired tag, to Free List
 	output logic [1:0][$clog2(`ARCHREG_NUMBER)-1: 0] arch_old_o,
 	output logic [1:0]retire_en_o,                          // R, to Arch Table and FL
-	output STRUCTURE_FULL ROB_full_o,
+	output STRUCTURE_FULL ROB_full_o, 
 	output ROB_RETIRE_PACKET  [1:0] retire_packet_o
 );
 	ROB_ENTRY [`ROB_SIZE-1:0] entries;
@@ -62,7 +61,7 @@ module rob(
 	assign entries_debug = next_entries;
 	`endif
 	
-	// full signal
+	// determine whether the ROB is full or not
 	always_comb begin
         ROB_full_o = ILLEGAL;
 		if(entries[head].valid) begin // when there is an entry at the head
@@ -167,7 +166,6 @@ module rob(
 			retire_packet_o <= next_retire_packet_o;
 		end
 	end
-
 
 endmodule
 

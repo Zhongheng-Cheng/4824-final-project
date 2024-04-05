@@ -17,7 +17,7 @@ module rob_testbench();
 
     logic [1:0] branch_recover_i;
     
-    logic  [1:0][$clog2(`ARCHREG_NUMBER)-1: 0] arch_old_o;
+    logic [1:0][$clog2(`ARCHREG_NUMBER)-1: 0] arch_old_o;
     logic [1:0] [$clog2(`PREG_NUMBER)-1:0]  T_o;   //To Arch. Map       
     logic [1:0] [$clog2(`PREG_NUMBER)-1:0]  T_old_o; // Free Lists
 	logic [1:0] retire_en_o; // To AM and FL
@@ -93,26 +93,7 @@ module rob_testbench();
         CDB_i[0] = 6'd32;
         CDB_en_i[0] = 1'b1;
         dispatch_en_i[0] = 1'b0;
-        /*
-        Allocate two instructions. CDB broadcast. Retire one.
-        +---+----+------+---+
-        |   | T  | Told | C |
-        +---+----+------+---+
-        |   | 32 | 1    | 1 |
-        +---+----+------+---+
-        | h | 33 | 2    | 0 |
-        +---+----+------+---+
-        | t |    |      |   |
-        +---+----+------+---+
-        |   |    |      |   |
-        +---+----+------+---+
-        |   |    |      |   |
-        +---+----+------+---+
-        |   |    |      |   |
-        +---+----+------+---+
-        |   |    |      |   |
-        +---+----+------+---+
-        */
+       
         `NEXT_CYCLE;
         `CHECK(T_o[0], 6'd32);
         `CHECK(T_old_o[0], 6'd1);
@@ -135,26 +116,7 @@ module rob_testbench();
             freeReg_i[0] = 6'd34 + i*2;
             freeReg_i[1] = 6'd35 + i*2;
         end
-        /*
-        Allocate 4 instructions in sequence.
-        +---+----+------+---+
-        |   | T  | Told | C |
-        +---+----+------+---+
-        |   | 32 | 1    | 1 |
-        +---+----+------+---+
-        | h | 33 | 2    |   |
-        +---+----+------+---+
-        |   | 34 | 3    |   |
-        +---+----+------+---+
-        |   | 35 | 4    |   |
-        +---+----+------+---+
-        |   | 36 | 5    |   |
-        +---+----+------+---+
-        |   | 37 | 6    |   |
-        +---+----+------+---+
-        | t |    |      |   |
-        +---+----+------+---+
-        */
+        
         `NEXT_CYCLE;
         `CHECK(head_debug, 1);
         `CHECK(tail_debug, 6);
@@ -164,26 +126,7 @@ module rob_testbench();
         CDB_en_i[0] = 1'b1;
         CDB_en_i[1] = 1'b1;
         dispatch_en_i[0] = 1'b0;
-        /*
-        Retire two instructions at once
-        +---+----+------+---+
-        |   | T  | Told | C |
-        +---+----+------+---+
-        |   | 32 | 1    | 1 |
-        +---+----+------+---+
-        |   | 33 | 2    |   |
-        +---+----+------+---+
-        |   | 34 | 3    |   |
-        +---+----+------+---+
-        | h | 35 | 4    |   |
-        +---+----+------+---+
-        |   | 36 | 5    |   |
-        +---+----+------+---+
-        |   | 37 | 6    |   |
-        +---+----+------+---+
-        | t |    |      |   |
-        +---+----+------+---+
-        */
+        
         `NEXT_CYCLE;
         CDB_en_i = 0;
         `CHECK(T_o[0], 6'd33);
@@ -205,26 +148,7 @@ module rob_testbench();
         CDB_en_i[0] = 1'b1;
         CDB_en_i[1] = 1'b1;
         dispatch_en_i[0] = 1'b0;
-        /*
-        Set ready for two instructins after head
-        +---+----+------+---+
-        |   | T  | Told | C |
-        +---+----+------+---+
-        |   | 32 | 1    | 1 |
-        +---+----+------+---+
-        |   | 33 | 2    |   |
-        +---+----+------+---+
-        |   | 34 | 3    |   |
-        +---+----+------+---+
-        | h | 35 | 4    |   |
-        +---+----+------+---+
-        |   | 36 | 5    | 1 |
-        +---+----+------+---+
-        |   | 37 | 6    | 1 |
-        +---+----+------+---+
-        | t |    |      |   |
-        +---+----+------+---+
-        */
+        
         `NEXT_CYCLE;
         CDB_en_i = 0;
         `CHECK(retire_en_o[0], 1'b0);
@@ -238,26 +162,7 @@ module rob_testbench();
         CDB_en_i[1] = 1'b0;
         
         dispatch_en_i[0] = 1'b0;
-        /*
-        Set head ready. Trigger three retire in a row
-        +----+----+------+---+
-        |    | T  | Told | C |
-        +----+----+------+---+
-        |    | 32 | 1    | 1 |
-        +----+----+------+---+
-        |    | 33 | 2    |   |
-        +----+----+------+---+
-        |    | 34 | 3    |   |
-        +----+----+------+---+
-        |    | 35 | 4    | 1 |
-        +----+----+------+---+
-        |    | 36 | 5    | 1 |
-        +----+----+------+---+
-        |    | 37 | 6    | 1 |
-        +----+----+------+---+
-        | ht |    |      |   |
-        +----+----+------+---+
-        */
+        
         `CHECK(retire_en_o[0], 1'b0);
         `CHECK(retire_en_o[1], 1'b0);
         `NEXT_CYCLE;
@@ -294,26 +199,7 @@ module rob_testbench();
             freeReg_i[0] = 32 + i*2;
             freeReg_i[1] = 33 + i*2;
         end
-        /*
-        Allocate until RoB full. Extra will not be accepted.
-        +----+----+------+---+
-        |    | T  | Told | C |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |    |    |      |   |
-        +----+----+------+---+
-        |ht  | 32 | 0    |   |
-        +----+----+------+---+
-        */
+        
         `CHECK(ROB_full_o, FULL);
         `CHECK(head_debug, 6);
         `CHECK(tail_debug, 6);
@@ -364,15 +250,5 @@ module rob_testbench();
 
     end
     
-    // always @(negedge clk) begin
-    //     if(reset) begin
-	// 		$display("@@\n@@  %t : System STILL at reset, can't show anything\n@@",
-	// 		         $realtime);
-    //     end else begin
-    //         print_ROB(head_debug);
-	// 	end  // if(reset)
-    // end
-
-
 endmodule
 	
