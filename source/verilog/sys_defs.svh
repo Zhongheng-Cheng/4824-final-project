@@ -110,6 +110,8 @@
 `define LSQ_SIZE 32
 `define BTB_SIZE 4
 
+`define SD #0
+
 
 
 typedef union packed {
@@ -294,12 +296,11 @@ typedef enum logic [4:0] {
 //////////////////////////////////////////////
 // ----   OoO Data Structure Packets   ---- //
 //////////////////////////////////////////////
-typedef struct packed {
-	logic tag_1_ready;
-	logic tag_2_ready;
-	RS_FU_PACKET fu_packet;
-	logic RS_valid;
-} RS_ENTRY;
+
+typedef enum logic [1:0] {
+	DEST_RD = 2'h0,
+	DEST_NONE  = 2'h1
+} DEST_REG_SEL;
 
 typedef struct packed {
 	logic [6:0] opcode;
@@ -325,6 +326,20 @@ typedef struct packed {
 	logic [6:0] funct7;
 } DECODE_NOREG_PACKET;
 
+typedef struct packed {
+	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_1;
+	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_2;
+	logic [$clog2(`PREG_NUMBER)-1: 0] dest_tag;
+	DECODE_NOREG_PACKET decode_noreg_packet;
+} RS_FU_PACKET;
+
+typedef struct packed {
+	logic tag_1_ready;
+	logic tag_2_ready;
+	RS_FU_PACKET fu_packet;
+	logic RS_valid;
+} RS_ENTRY;
+
 typedef enum logic [1:0] {
 	MORE_LEFT = 2'h0,
 	ONE_LEFT  = 2'h1,
@@ -333,11 +348,26 @@ typedef enum logic [1:0] {
 } STRUCTURE_FULL;
 
 typedef struct packed {
-	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_1;
-	logic [$clog2(`PREG_NUMBER)-1: 0] source_tag_2;
-	logic [$clog2(`PREG_NUMBER)-1: 0] dest_tag;
-	DECODE_NOREG_PACKET decode_noreg_packet;
-} RS_FU_PACKET;
+	logic rd_mem;
+	logic wr_mem;
+	logic cond_branch;
+	logic uncond_branch;
+	logic csr_op;
+	logic halt;
+	logic illegal;
+	DEST_REG_SEL dest_reg_sel;
+	`ifdef DEBUG
+	logic [31:0] PC;
+	`endif
+} ROB_RETIRE_PACKET;
+
+typedef struct packed {
+	logic	valid;
+	logic [$clog2(`PREG_NUMBER)-1: 0] T;
+	logic [$clog2(`PREG_NUMBER)-1: 0] T_old;
+	logic [$clog2(`ARCHREG_NUMBER)-1: 0] arch_old;
+	ROB_RETIRE_PACKET retire_packet;
+}ROB_ENTRY;
 
 ////////////////////////////////
 // ---- Datapath Packets ---- //
