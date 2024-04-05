@@ -62,6 +62,7 @@ typedef enum logic [1:0] {FU_ALU, FU_MULT, FU_LOAD, FU_STORE} FU_TYPE;
 // `define FU_STORE 2'b11;
 
 // functional units (you should decide if you want more or fewer types of FUs)
+`define NUM_FU 5
 `define NUM_FU_ALU 2'b01
 `define NUM_FU_MULT 2'b10
 `define NUM_FU_LOAD 2'b01
@@ -69,6 +70,11 @@ typedef enum logic [1:0] {FU_ALU, FU_MULT, FU_LOAD, FU_STORE} FU_TYPE;
 
 // number of mult stages (2, 4, or 8)
 `define MULT_STAGES 4
+
+//WAYS of superscalar
+`define SUPERSCALAR_WAY 2
+
+`define PHY_REG_NUM 8
 
 ///////////////////////////////
 // ---- Basic Constants ---- //

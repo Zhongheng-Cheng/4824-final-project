@@ -6,7 +6,7 @@ module reservation_station (
 
     /* Updating given PREG (from CDB) */
     input cdb_ready,
-    input REG cdb_tag,
+    input REG cdb_tag,        //TODO: change name, change REG num
 
     /* Issuing */
     input logic issue_enable,
