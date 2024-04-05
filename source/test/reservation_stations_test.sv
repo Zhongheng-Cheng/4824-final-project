@@ -73,6 +73,7 @@ module testbench();
         assert(allocate_done) else exit_on_error;
         assert(!issue_ready) else exit_on_error;
 
+        $display("@@@Fu_Load Passed");
 
         packet_in.fu                = FU_MULT;
         packet_in.inst              = 64;
@@ -98,7 +99,7 @@ module testbench();
         assert(issued_packet.tag2.num == 4) else exit_on_error;
         assert(issue_index == 0) else exit_on_error;
         
-
+        $display("@@@FU_MULT Passed");
         packet_in.fu                = FU_STORE;
         packet_in.inst              = 74;
         packet_in.dest_tag.num  = 0;
@@ -136,7 +137,7 @@ module testbench();
         assert(allocate_done) else exit_on_error;
         assert(!issue_ready) else exit_on_error;
 
-
+        $display("@@@FU_STORE Passed");
         packet_in.fu                = FU_LOAD;
         packet_in.inst              = 96;
         packet_in.dest_tag.num  = 8;

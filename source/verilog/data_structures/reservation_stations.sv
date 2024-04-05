@@ -1,6 +1,5 @@
 module reservation_station (
     input clock, reset,
-
     /* Allocating */
     input RS_PACKET packet_in,
     output logic allocate_done,
@@ -19,10 +18,13 @@ module reservation_station (
     input [4:0] free
 );
 
-    RS_PACKET entries, next_entries [4:0];
-    logic entry_busy,entry_busy_next [4:0];
+    RS_PACKET entries[5];
+    RS_PACKET next_entries [5];
+    logic entry_busy [4:0];
+    logic entry_busy_next [4:0];
     logic allocate, allocate_index;
     logic [4:0] issue_index_next;
+    logic ready_to_issue;
 
     always_comb begin
         allocate = 0;
@@ -68,28 +70,35 @@ module reservation_station (
     end
 
     always_comb begin
-        issue_index_next = 5'b0;
-
+        //issue_index_next = 5'b0;
+        ready_issue = 1'b1;
         for (int i = 0; i < 5; i++) begin
-            if (entries[i].tag1.reg_ready && entries[i].tag2.reg_ready) 
-                issue_index_next[i] = 1;
+            if (entries[i].tag1.ready && entries[i].tag2.ready) 
+                issue_index_next[i] = 1'b1;
+            else begin
+                issue_index_next[i] = 1'b0;
+            end
+            if (entries[i].tag1.ready != 1'b1 || entries[i].tag2.ready != 1'b1 || reset ) begin
+                ready_issue = 1'b0;
+            end
+
         end
     end
 
-
+  
+    
     always_ff @(posedge clock) begin
 		if(reset) begin
-            entries <= 0;
+            entries <= {0,0,0,0,0};
             entries[0].fu <= FU_ALU;
             entries[1].fu <= FU_LOAD;
             entries[2].fu <= FU_STORE;
             entries[3].fu <= FU_MULT;
             entries[4].fu <= FU_MULT;
 
-            entry_busy <= 0;
+           entry_busy <= '{5{1'b0}}; 
 
-            issue_index <= 0;
-
+            issue_index <= '{5{1'b0}};
 		end
 
 		else begin
@@ -107,10 +116,12 @@ module reservation_station (
 
             if(cdb_ready)begin
                 for(int i=0; i<5; i++)begin
-                    if(entries.tag1.num == cdb_tag.num) entries.tag1.ready <= 1;
-                    if(entries.tag2.num == cdb_tag.num) entries.tag2.ready <= 1;
+                    if(entries[i].tag1.num == cdb_tag.num) entries[i].tag1.ready <= 1'b1;
+                    if(entries[i].tag2.num == cdb_tag.num) entries[i].tag2.ready <= 1'b1;
                 end
             end
+
+
             
 		end	
 	end
