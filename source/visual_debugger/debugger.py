@@ -68,42 +68,42 @@ def main(stdscr):
     # create window for Reorder Buffer (RoB)
     wins["rob"] = new_window(title="RoB", 
                              nlines=10, 
-                             ncols=34, 
+                             ncols=43, 
                              begin_y=0, 
                              begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1] + 1
                              )
+    wins['rob'].addstr(1, 1, "ht|# |Insn      |T   |Told|S   |X   |C   ")
+    wins["rob"].refresh()
 
     # create window for Map Table
     wins["map_table"] = new_window(title="Map Table", 
                                    nlines=10, 
-                                   ncols=15, 
+                                   ncols=10, 
                                    begin_y=0, 
                                    begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
                                    )
+    wins['map_table'].addstr(1, 1, "Reg|T+  ")
+    wins["map_table"].refresh()
 
     # create window for Arch Table
     wins["arch_table"] = new_window(title="Arch Table", 
                                     nlines=10, 
-                                    ncols=15, 
+                                    ncols=10, 
                                     begin_y=0, 
                                     begin_x=wins['map_table'].getbegyx()[1] + wins['map_table'].getmaxyx()[1]
                                     )
+    wins['arch_table'].addstr(1, 1, "Reg|T+  ")
+    wins["arch_table"].refresh()
     
-    # create window for Common Data Bus (CDB)
-    wins["cdb"] = new_window(title="CDB", 
-                            nlines=8, 
-                            ncols=15, 
-                            begin_y=12, 
-                            begin_x=0
-                            )
-
     # create window for Reservation Stations (RS)
     wins["rs"] = new_window(title="RS", 
                             nlines=10, 
-                            ncols=50, 
+                            ncols=35, 
                             begin_y=10, 
-                            begin_x=wins['cdb'].getbegyx()[1] + wins['cdb'].getmaxyx()[1]
+                            begin_x=wins['rob'].getbegyx()[1]
                             )
+    wins['rs'].addstr(1, 1, " #|FU |Busy|op   |T   |T1  |T2  ")
+    wins["rs"].refresh()
 
     # create window for Free List
     wins["free_list"] = new_window(title="Free List", 
@@ -112,6 +112,18 @@ def main(stdscr):
                                    begin_y=10, 
                                    begin_x=wins['rs'].getbegyx()[1] + wins['rs'].getmaxyx()[1]
                                    )
+    wins['free_list'].addstr(1, 1, "")
+    wins["free_list"].refresh()
+
+    # create window for Common Data Bus (CDB)
+    wins["cdb"] = new_window(title="CDB", 
+                             nlines=5, 
+                             ncols=8, 
+                             begin_y=10, 
+                             begin_x=wins['free_list'].getbegyx()[1] + wins['free_list'].getmaxyx()[1]
+                             )
+    wins['cdb'].addstr(1, 1, "T  ")
+    wins["cdb"].refresh()
 
 
 
