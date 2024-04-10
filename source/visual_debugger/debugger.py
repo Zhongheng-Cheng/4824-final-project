@@ -1,30 +1,19 @@
 import curses
 
 def main(stdscr):
-    # Clear the screen
     stdscr.clear()
+    curses.curs_set(False)
 
-    # Turn off cursor display
-    curses.curs_set(0)
+    while True:
 
-    # Get screen dimensions
-    height, width = stdscr.getmaxyx()
+        key_press = chr(stdscr.getch())
 
-    # Calculate center of the screen
-    center_y = height // 2
-    center_x = width // 2
+        # quit the debugger
+        if key_press == "q":
+            break
+        else:
+            stdscr.addstr(0, 0, key_press)
+            stdscr.refresh()
 
-    # Define text to display
-    message = "Hello, Terminal GUI!"
-
-    # Calculate starting position of the text
-    start_y = center_y - 1
-    start_x = center_x - len(message) // 2
-
-    # Display the message
-    stdscr.addstr(start_y, start_x, message)
-
-    # Wait for user input to exit
-    stdscr.getch()
 
 curses.wrapper(main)
