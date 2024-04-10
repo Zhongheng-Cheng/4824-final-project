@@ -33,33 +33,34 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
 def main(stdscr):
     
     # initialization
+    wins = {"main": stdscr}
     curses.curs_set(False)
     cycle = Cycle()
-    stdscr.clear()
-    stdscr.refresh()
+    wins["main"].clear()
+    wins["main"].refresh()
+    
 
     goto_input = ""
     recording = False
 
     # create window for Keys
-    win_keys = new_window(title="Keys", nlines=10, ncols=15, begin_y=0, begin_x=0)
-    win_keys.addstr(1, 1, "Q: quit")
-    win_keys.addstr(2, 1, "→: next cycle")
-    win_keys.addstr(3, 1, "←: prev cycle")
-    win_keys.addstr(4, 1, "↑: +10 cycles")
-    win_keys.addstr(5, 1, "↓: -10 cycles")
-    win_keys.addstr(6, 1, "G: go to     ")
-    win_keys.addstr(7, 1, "T: end go to ")
-    win_keys.refresh()
+    wins["keys"] = new_window(title="Keys", nlines=10, ncols=15, begin_y=0, begin_x=0)
+    wins["keys"].addstr(1, 1, "Q: quit")
+    wins["keys"].addstr(2, 1, "→: next cycle")
+    wins["keys"].addstr(3, 1, "←: prev cycle")
+    wins["keys"].addstr(4, 1, "↑: +10 cycles")
+    wins["keys"].addstr(5, 1, "↓: -10 cycles")
+    wins["keys"].addstr(6, 1, "G: go to     ")
+    wins["keys"].addstr(7, 1, "T: end go to ")
+    wins["keys"].refresh()
 
 
     # main loop
     while True:
-        stdscr.addstr(0, 17, f"Cycle: {cycle.now:3d}")
-        stdscr.refresh()
-        win_keys.refresh()
+        wins["main"].addstr(0, 17, f"Cycle: {cycle.now:3d}")
+        wins["main"].refresh()
 
-        key_press = stdscr.getch()
+        key_press = wins["main"].getch()
 
         # quit the debugger
         if key_press == ord('q'):
@@ -78,24 +79,26 @@ def main(stdscr):
         # go-to function
         elif key_press == ord('g'):
             recording = True
-            win_keys.addstr(6, 1, "G: go to     ", curses.A_REVERSE)
+            wins["keys"].addstr(6, 1, "G: go to     ", curses.A_REVERSE)
         elif recording and key_press == 10: # ENTER
             recording = False
-            win_keys.addstr(6, 1, "G: go to     ")
+            wins["keys"].addstr(6, 1, "G: go to     ")
             if goto_input:
                 cycle.move_to_cycle(int(goto_input[-3:]))
                 goto_input = ""
         elif recording and key_press == 263: # BACKSPACE
             goto_input = goto_input[:-1]
-            win_keys.addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE)
+            wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE)
         elif recording and 48 <= key_press <= 57: # numbers: 0-9
             char = str(int(chr(key_press)))
             goto_input += char
-            win_keys.addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE)
+            wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE)
 
 
-        stdscr.addstr(20, 1, f"Key pressed: {str(key_press):3s}")
-        stdscr.refresh()
-        win_keys.refresh()
+        wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
+
+        # refresh for every window
+        for win in wins.values():
+            win.refresh()
 
 curses.wrapper(main)
