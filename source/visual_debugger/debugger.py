@@ -22,6 +22,7 @@ class Cycle():
             self.now = 999
         return
 
+
 def new_window(title, nlines, ncols, begin_y, begin_x):
     win = curses.newwin(nlines, ncols, begin_y, begin_x)
     win.border()
@@ -46,12 +47,13 @@ def main(stdscr):
     # create window for Keys
     wins["keys"] = new_window(title="Keys", nlines=10, ncols=15, begin_y=0, begin_x=0)
     wins["keys"].addstr(1, 1, "Q: quit")
-    wins["keys"].addstr(2, 1, "→: next cycle")
-    wins["keys"].addstr(3, 1, "←: prev cycle")
-    wins["keys"].addstr(4, 1, "↑: +10 cycles")
-    wins["keys"].addstr(5, 1, "↓: -10 cycles")
+    wins["keys"].addstr(2, 1, "L: next cycle")
+    wins["keys"].addstr(3, 1, "J: prev cycle")
+    wins["keys"].addstr(4, 1, "I: +10 cycles")
+    wins["keys"].addstr(5, 1, "K: -10 cycles")
     wins["keys"].addstr(6, 1, "G: go to     ")
     wins["keys"].addstr(7, 1, "T: end go to ")
+    wins["keys"].addstr(7, 1, "B: backspace ")
     wins["keys"].refresh()
 
 
@@ -67,26 +69,26 @@ def main(stdscr):
             return
         
         # move cycle count
-        elif key_press == curses.KEY_RIGHT:   
+        elif key_press == ord('l'):   
             cycle.add_to_cycle(1)
-        elif key_press == curses.KEY_LEFT:   
+        elif key_press == ord('j'):   
             cycle.add_to_cycle(-1)
-        elif key_press == curses.KEY_UP:   
+        elif key_press == ord('i'):   
             cycle.add_to_cycle(10)
-        elif key_press == curses.KEY_DOWN:   
+        elif key_press == ord('k'):   
             cycle.add_to_cycle(-10)
 
         # go-to function
-        elif key_press == ord('g'):
+        elif key_press == ord('g'): # start go-to
+            goto_input = ""
             recording = True
             wins["keys"].addstr(6, 1, "G: go to     ", curses.A_REVERSE)
-        elif recording and key_press == 10: # ENTER
+        elif recording and key_press == ord('t'): # end go-to
             recording = False
             wins["keys"].addstr(6, 1, "G: go to     ")
             if goto_input:
                 cycle.move_to_cycle(int(goto_input[-3:]))
-                goto_input = ""
-        elif recording and key_press == 263: # BACKSPACE
+        elif recording and key_press == ord('b'): # backspace
             goto_input = goto_input[:-1]
             wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE)
         elif recording and 48 <= key_press <= 57: # numbers: 0-9
