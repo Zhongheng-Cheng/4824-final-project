@@ -26,7 +26,7 @@ class Cycle():
 def new_window(title, nlines, ncols, begin_y, begin_x):
     win = curses.newwin(nlines, ncols, begin_y, begin_x)
     win.border()
-    win.addstr(0, max(begin_x, (begin_x + ncols) // 2 - len(title) // 2), title, curses.A_BOLD | curses.COLOR_RED)
+    win.addstr(0, max(0, (ncols - 1) // 2 - len(title) // 2), title, curses.A_BOLD)
     win.refresh()
     return win
 
@@ -44,8 +44,17 @@ def main(stdscr):
     goto_input = ""
     recording = False
 
+    # set position of cycle count
+    cycle_begin_y = 10
+    cycle_begin_x = 1
+
     # create window for Keys
-    wins["keys"] = new_window(title="Keys", nlines=10, ncols=15, begin_y=0, begin_x=0)
+    wins["keys"] = new_window(title="Keys", 
+                              nlines=10, 
+                              ncols=15, 
+                              begin_y=0, 
+                              begin_x=0
+                              )
     wins["keys"].addstr(1, 1, "Q: quit")
     wins["keys"].addstr(2, 1, "L: next cycle")
     wins["keys"].addstr(3, 1, "J: prev cycle")
@@ -53,13 +62,64 @@ def main(stdscr):
     wins["keys"].addstr(5, 1, "K: -10 cycles")
     wins["keys"].addstr(6, 1, "G: go to     ")
     wins["keys"].addstr(7, 1, "T: end go to ")
-    wins["keys"].addstr(7, 1, "B: backspace ")
+    wins["keys"].addstr(8, 1, "B: backspace ")
     wins["keys"].refresh()
+
+    # create window for Reorder Buffer (RoB)
+    wins["rob"] = new_window(title="RoB", 
+                             nlines=10, 
+                             ncols=34, 
+                             begin_y=0, 
+                             begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1] + 1
+                             )
+
+    # create window for Map Table
+    wins["map_table"] = new_window(title="Map Table", 
+                                   nlines=10, 
+                                   ncols=15, 
+                                   begin_y=0, 
+                                   begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
+                                   )
+
+    # create window for Arch Table
+    wins["arch_table"] = new_window(title="Arch Table", 
+                                    nlines=10, 
+                                    ncols=15, 
+                                    begin_y=0, 
+                                    begin_x=wins['map_table'].getbegyx()[1] + wins['map_table'].getmaxyx()[1]
+                                    )
+    
+    # create window for Common Data Bus (CDB)
+    wins["cdb"] = new_window(title="CDB", 
+                            nlines=8, 
+                            ncols=15, 
+                            begin_y=12, 
+                            begin_x=0
+                            )
+
+    # create window for Reservation Stations (RS)
+    wins["rs"] = new_window(title="RS", 
+                            nlines=10, 
+                            ncols=50, 
+                            begin_y=10, 
+                            begin_x=wins['cdb'].getbegyx()[1] + wins['cdb'].getmaxyx()[1]
+                            )
+
+    # create window for Free List
+    wins["free_list"] = new_window(title="Free List", 
+                                   nlines=10, 
+                                   ncols=15, 
+                                   begin_y=10, 
+                                   begin_x=wins['rs'].getbegyx()[1] + wins['rs'].getmaxyx()[1]
+                                   )
+
+
+
 
 
     # main loop
     while True:
-        wins["main"].addstr(0, 17, f"Cycle: {cycle.now:3d}")
+        wins["main"].addstr(cycle_begin_y, cycle_begin_x, f"Cycle: {cycle.now:3d}")
         wins["main"].refresh()
 
         key_press = wins["main"].getch()
