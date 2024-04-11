@@ -31,27 +31,8 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
     return win
 
 
-def main(stdscr):
-    
-    # initialization
-    wins = {"main": stdscr}
-    curses.curs_set(False)
-    cycle = Cycle()
-    wins["main"].clear()
-    wins["main"].refresh()
-    
-    goto_input = ""
-    recording = False
-
-    # create window for Cycle
-    wins["cycle"] = new_window(title="Cycle", 
-                               nlines=3, 
-                               ncols=15, 
-                               begin_y=10, 
-                               begin_x=0
-                               )
-    wins['cycle'].addstr(1, 1, f"     {0:3d}     ")
-    wins['cycle'].refresh()
+def update_ui():
+    global wins
 
     # create window for Keys
     wins["keys"] = new_window(title="Keys", 
@@ -65,7 +46,7 @@ def main(stdscr):
     wins["keys"].addstr(3, 1, "J: prev cycle")
     wins["keys"].addstr(4, 1, "I: +10 cycles")
     wins["keys"].addstr(5, 1, "K: -10 cycles")
-    wins["keys"].addstr(6, 1, "G: go to     ")
+    wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
     wins["keys"].addstr(7, 1, "T: end go to ")
     wins["keys"].addstr(8, 1, "B: backspace ")
     wins["keys"].refresh()
@@ -99,6 +80,16 @@ def main(stdscr):
                                     )
     wins['arch_table'].addstr(1, 1, "Reg|T+  ")
     wins["arch_table"].refresh()
+
+    # create window for Cycle
+    wins["cycle"] = new_window(title="Cycle", 
+                               nlines=3, 
+                               ncols=15, 
+                               begin_y=10, 
+                               begin_x=0
+                               )
+    wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+    wins['cycle'].refresh()
     
     # create window for Reservation Stations (RS)
     wins["rs"] = new_window(title="RS", 
@@ -130,9 +121,37 @@ def main(stdscr):
     wins['cdb'].addstr(1, 1, "T  ")
     wins["cdb"].refresh()
 
+    return
+
+
+def main(stdscr):
+    global cycle, wins, goto_input, recording
+    
+    # initialization
+    wins = {"main": stdscr}
+    curses.curs_set(False)
+    cycle = Cycle()
+    wins["main"].clear()
+    wins["main"].refresh()
+    
+    goto_input = ""
+    recording = False
+    key_press = ""
 
     # main loop
     while True:
+        
+        height, width = wins["main"].getmaxyx()
+        if height < 25 or width < 100:
+            wins['main'].clear()
+            wins["main"].addstr(0, 0, "Not enough space!")
+            wins["main"].refresh()
+            wins["main"].getch()
+            continue
+        update_ui()
+        wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
+        wins["main"].addstr(21, 1, f"Window size: {height:3d} x {width:3d}")
+
         key_press = wins["main"].getch()
 
         # quit the debugger
@@ -140,7 +159,7 @@ def main(stdscr):
             return
         
         # move cycle count
-        elif key_press == ord('l'):   
+        if key_press == ord('l'):   
             cycle.add_to_cycle(1)
         elif key_press == ord('j'):   
             cycle.add_to_cycle(-1)
@@ -164,13 +183,6 @@ def main(stdscr):
             char = str(int(chr(key_press)))
             goto_input += char
 
-        # update formula for every window
-        wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
-        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
-        wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
 
-        # refresh for every window
-        for win in wins.values():
-            win.refresh()
-
-curses.wrapper(main)
+if __name__ == "__main__":
+    curses.wrapper(main)
