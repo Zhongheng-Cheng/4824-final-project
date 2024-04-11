@@ -32,7 +32,7 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
 
 
 def main(stdscr):
-    
+
     def update_ui():
 
         # create window for Keys
@@ -122,6 +122,9 @@ def main(stdscr):
         wins['cdb'].addstr(1, 1, "T  ")
         wins["cdb"].refresh()
 
+        wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
+        wins["main"].addstr(21, 1, f"Window size: {height:3d} x {width:3d}")
+
         return
     
 
@@ -147,9 +150,8 @@ def main(stdscr):
             wins["main"].getch()
             continue
         update_ui()
-        wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
-        wins["main"].addstr(21, 1, f"Window size: {height:3d} x {width:3d}")
 
+        
         key_press = wins["main"].getch()
 
         # quit the debugger
