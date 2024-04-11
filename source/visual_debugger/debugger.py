@@ -31,102 +31,100 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
     return win
 
 
-def update_ui():
-    global wins
+def main(stdscr):
+    
+    def update_ui():
 
-    # create window for Keys
-    wins["keys"] = new_window(title="Keys", 
-                              nlines=10, 
-                              ncols=15, 
-                              begin_y=0, 
-                              begin_x=0
-                              )
-    wins["keys"].addstr(1, 1, "Q: quit")
-    wins["keys"].addstr(2, 1, "L: next cycle")
-    wins["keys"].addstr(3, 1, "J: prev cycle")
-    wins["keys"].addstr(4, 1, "I: +10 cycles")
-    wins["keys"].addstr(5, 1, "K: -10 cycles")
-    wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
-    wins["keys"].addstr(7, 1, "T: end go to ")
-    wins["keys"].addstr(8, 1, "B: backspace ")
-    wins["keys"].refresh()
+        # create window for Keys
+        wins["keys"] = new_window(title="Keys", 
+                                nlines=10, 
+                                ncols=15, 
+                                begin_y=0, 
+                                begin_x=0
+                                )
+        wins["keys"].addstr(1, 1, "Q: quit")
+        wins["keys"].addstr(2, 1, "L: next cycle")
+        wins["keys"].addstr(3, 1, "J: prev cycle")
+        wins["keys"].addstr(4, 1, "I: +10 cycles")
+        wins["keys"].addstr(5, 1, "K: -10 cycles")
+        wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
+        wins["keys"].addstr(7, 1, "T: end go to ")
+        wins["keys"].addstr(8, 1, "B: backspace ")
+        wins["keys"].refresh()
 
-    # create window for Reorder Buffer (RoB)
-    wins["rob"] = new_window(title="RoB", 
-                             nlines=10, 
-                             ncols=43, 
-                             begin_y=0, 
-                             begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                             )
-    wins['rob'].addstr(1, 1, "ht|# |Insn      |T   |Told|S   |X   |C   ")
-    wins["rob"].refresh()
+        # create window for Reorder Buffer (RoB)
+        wins["rob"] = new_window(title="RoB", 
+                                nlines=10, 
+                                ncols=43, 
+                                begin_y=0, 
+                                begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                )
+        wins['rob'].addstr(1, 1, "ht|# |Insn      |T   |Told|S   |X   |C   ")
+        wins["rob"].refresh()
 
-    # create window for Map Table
-    wins["map_table"] = new_window(title="Map Table", 
-                                   nlines=10, 
-                                   ncols=10, 
-                                   begin_y=0, 
-                                   begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
-                                   )
-    wins['map_table'].addstr(1, 1, "Reg|T+  ")
-    wins["map_table"].refresh()
-
-    # create window for Arch Table
-    wins["arch_table"] = new_window(title="Arch Table", 
+        # create window for Map Table
+        wins["map_table"] = new_window(title="Map Table", 
                                     nlines=10, 
                                     ncols=10, 
                                     begin_y=0, 
-                                    begin_x=wins['map_table'].getbegyx()[1] + wins['map_table'].getmaxyx()[1]
+                                    begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
                                     )
-    wins['arch_table'].addstr(1, 1, "Reg|T+  ")
-    wins["arch_table"].refresh()
+        wins['map_table'].addstr(1, 1, "Reg|T+  ")
+        wins["map_table"].refresh()
 
-    # create window for Cycle
-    wins["cycle"] = new_window(title="Cycle", 
-                               nlines=3, 
-                               ncols=15, 
-                               begin_y=10, 
-                               begin_x=0
-                               )
-    wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
-    wins['cycle'].refresh()
+        # create window for Arch Table
+        wins["arch_table"] = new_window(title="Arch Table", 
+                                        nlines=10, 
+                                        ncols=10, 
+                                        begin_y=0, 
+                                        begin_x=wins['map_table'].getbegyx()[1] + wins['map_table'].getmaxyx()[1]
+                                        )
+        wins['arch_table'].addstr(1, 1, "Reg|T+  ")
+        wins["arch_table"].refresh()
+
+        # create window for Cycle
+        wins["cycle"] = new_window(title="Cycle", 
+                                nlines=3, 
+                                ncols=15, 
+                                begin_y=10, 
+                                begin_x=0
+                                )
+        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+        wins['cycle'].refresh()
+        
+        # create window for Reservation Stations (RS)
+        wins["rs"] = new_window(title="RS", 
+                                nlines=10, 
+                                ncols=35, 
+                                begin_y=10, 
+                                begin_x=wins['rob'].getbegyx()[1]
+                                )
+        wins['rs'].addstr(1, 1, " #|FU |Busy|op   |T   |T1  |T2  ")
+        wins["rs"].refresh()
+
+        # create window for Free List
+        wins["free_list"] = new_window(title="Free List", 
+                                    nlines=10, 
+                                    ncols=15, 
+                                    begin_y=10, 
+                                    begin_x=wins['rs'].getbegyx()[1] + wins['rs'].getmaxyx()[1]
+                                    )
+        wins['free_list'].addstr(1, 1, "")
+        wins["free_list"].refresh()
+
+        # create window for Common Data Bus (CDB)
+        wins["cdb"] = new_window(title="CDB", 
+                                nlines=5, 
+                                ncols=8, 
+                                begin_y=10, 
+                                begin_x=wins['free_list'].getbegyx()[1] + wins['free_list'].getmaxyx()[1]
+                                )
+        wins['cdb'].addstr(1, 1, "T  ")
+        wins["cdb"].refresh()
+
+        return
     
-    # create window for Reservation Stations (RS)
-    wins["rs"] = new_window(title="RS", 
-                            nlines=10, 
-                            ncols=35, 
-                            begin_y=10, 
-                            begin_x=wins['rob'].getbegyx()[1]
-                            )
-    wins['rs'].addstr(1, 1, " #|FU |Busy|op   |T   |T1  |T2  ")
-    wins["rs"].refresh()
 
-    # create window for Free List
-    wins["free_list"] = new_window(title="Free List", 
-                                   nlines=10, 
-                                   ncols=15, 
-                                   begin_y=10, 
-                                   begin_x=wins['rs'].getbegyx()[1] + wins['rs'].getmaxyx()[1]
-                                   )
-    wins['free_list'].addstr(1, 1, "")
-    wins["free_list"].refresh()
-
-    # create window for Common Data Bus (CDB)
-    wins["cdb"] = new_window(title="CDB", 
-                             nlines=5, 
-                             ncols=8, 
-                             begin_y=10, 
-                             begin_x=wins['free_list'].getbegyx()[1] + wins['free_list'].getmaxyx()[1]
-                             )
-    wins['cdb'].addstr(1, 1, "T  ")
-    wins["cdb"].refresh()
-
-    return
-
-
-def main(stdscr):
-    global cycle, wins, goto_input, recording
-    
     # initialization
     wins = {"main": stdscr}
     curses.curs_set(False)
