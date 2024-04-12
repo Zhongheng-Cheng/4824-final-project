@@ -1,151 +1,45 @@
-##########################
-# ---- Introduction ---- #
-##########################
+# make          <- runs simv (after compiling simv if needed)
+# make all      <- runs simv (after compiling simv if needed)
+# make simv     <- compile simv if needed (but do not run)
+# make syn      <- runs syn_simv (after synthesizing if needed then 
+#                                 compiling synsimv if needed)
+# make clean    <- remove files created during compilations (but not synthesis)
+# make nuke     <- remove all files created during compilation and synthesis
+#
+# To compile additional files, add them to the TESTBENCH or SIMFILES as needed
+# Every .vg file will need its own rule and one or more synthesis scripts
+# The information contained here (in the rules for those vg files) will be 
+# similar to the information in those scripts but that seems hard to avoid.
+#
+#
 
-# Welcome to the Project 3 VeriSimpleV Processor makefile!
-# this file will build and run a fully synthesizable RISC-V verilog processor
-# and is an extended version of the EECS 470 standard makefile
+SOURCE = test_progs/rv32_insertion.s
 
-# NOTE: this file should need no changes for project 3
-# but it will be reused for project 4, where you will likely add your own new files and functionality
+CRT = crt.s
+LINKERS = linker.lds
+ASLINKERS = aslinker.lds
 
-# reference table of all make targets:
-
-# make  <- runs the default target, set explicitly below as 'make no_hazard.out'
-.DEFAULT_GOAL = no_hazard.out
-# ^ this overrides using the first listed target as the default
-
-# ---- Module Testbenches ---- #
-# NOTE: these require files like: 'verilog/rob.sv' and 'test/rob_test.sv'
-#       which implement and test the module: 'rob'
-
-# make <module>.pass   <- greps for "@@@ Passed" or "@@@ Incorrect" in the output
-# make <module>.out    <- run the testbench (via <module>.simv)
-# make <module>.simv   <- compile the testbench executable
-# make <module>.verdi  <- run in verdi (via <module>.simv)
-# make <module>.syn.pass   <- greps for "@@@ Passed" or "@@@ Incorrect" in the output
-# make <module>.syn.out    <- run the synthesized module on the testbench
-# make <module>.syn.simv   <- compile the synthesized module with the testbench
-# make synth/<module>.vg   <- synthesize the module
-# make <module>.syn.verdi  <- run in verdi (via <module>.syn.simv)
-
-# ---- module testbench coverage ---- #
-# make <module>.coverage    <- print the coverage hierarchy report to the terminal
-# make <module>.cov.verdi   <- open the coverage report in verdi
-# make <module>.cov         <- compiles a coverage executable for the module and testbench
-# make <module>.cov.vdb     <- runs the executable and creates the <module>.cov.vdb directory
-# make <module>_cov_report  <- run urg to create human readable coverage reports
-
-# ---- Program Execution ---- #
-# these are your main commands for running programs and generating output
-# make <my_program>.out      <- run a program on simv and generate .out, .wb, and .ppln files in 'output/'
-# make <my_program>.syn.out  <- run a program on syn_simv and do the same
-# make simulate_all          <- run every program on simv at once (in parallel with -j)
-# make simulate_all_syn      <- run every program on syn_simv at once (in parallel with -j)
-
-# ---- Executable Compilation ---- #
-# make simv      <- compiles simv from the TESTBENCH and SOURCES
-# make syn_simv  <- compiles syn_simv from TESTBENCH and SYNTH_FILES
-# make *.vg      <- synthesize modules in SOURCES for use in syn_simv
-# make slack     <- grep the slack status of any synthesized modules
-
-# ---- Program Memory Compilation ---- #
-# NOTE: programs to run are in the programs/ directory
-# make programs/<my_program>.mem  <- compiles a program to a RISC-V memory file for running on the processor
-# make compile_all                <- compile every program at once (in parallel with -j)
-
-# ---- Dump Files ---- #
-# make <my_program>.dump  <- disassembles <my_program>.mem into .dump_x and .dump_abi RISC-V assembly files
-# make *.debug.dump       <- for a .c program, creates dump files after compiling with a debug flag
-# make programs/<my_program>.dump_x    <- numeric dump files use x0-x31 as register names
-# make programs/<my_program>.dump_abi  <- abi dump files use the abi register names (sp, a0, etc.)
-# make dump_all  <- create all dump files at once (in parallel with -j)
-
-# ---- Verdi ---- #
-# make <my_program>.verdi     <- run a program in verdi via simv
-# make <my_program>.syn.verdi <- run a program in verdi via syn_simv
-
-# ---- Visual Debugger ---- #
-# make <my_program>.vis  <- run a program on the project 3 vtuber visual debugger!
-# make vis_simv          <- compile the vtuber executable from VTUBER and SOURCES
-
-# ---- Cleanup ---- #
-# make clean            <- remove per-run files and compiled executable files
-# make nuke             <- remove all files created from make rules
-# make clean_run_files  <- remove per-run output files
-# make clean_exe        <- remove compiled executable files
-# make clean_synth      <- remove generated synthesis files
-# make clean_output     <- remove the entire output/ directory
-# make clean_programs   <- remove program memory and dump files
-
-# Credits:
-# VeriSimpleV was adapted by Jielun Tan for RISC-V from the original 470 VeriSimple Alpha language processor
-# however I cannot find the original authors or the major editors of the project :/
-# so to everyone I can't credit: thank you!
-# the current layout of the Makefile was made by Ian Wrzesinski in 2023
-# VeriSimpleV has also been edited by at least:
-# Nevil Pooniwala, Xueyang Liu, Cassie Jones, James Connolly
-
-######################################################
-# ---- Compilation Commands and Other Variables ---- #
-######################################################
-
-# these are various build flags for different parts of the makefile, VCS and LIB should be
-# familiar, but there are new variables for supporting the compilation of assembly and C
-# source programs into riscv machine code files to be loaded into the processor's memory
-
-# don't be afraid to change these, but be diligent about testing changes and using git commits
-# there should be no need to change anything for project 3
-
-# this is a global clock period variable used in the tcl script and referenced in testbenches
-export CLOCK_PERIOD = 30.0
-
-# the Verilog Compiler command and arguments
-VCS = SW_VCS=2020.12-SP2-1 vcs -sverilog +vc -Mupdate -line -full64 -kdb -lca -nc \
-      -debug_access+all+reverse $(VCS_BAD_WARNINGS) +define+CLOCK_PERIOD=$(CLOCK_PERIOD)
-# a SYNTH define is added when compiling for synthesis that can be used in testbenches
-
-# remove certain warnings that generate MB of text but can be safely ignored
-VCS_BAD_WARNINGS = +warn=noTFIPC +warn=noDEBUG_DEP +warn=noENUMASSIGN +warn=noLCA_FEATURES_ENABLED
-
-# a reference library of standard structural cells that we link against when synthesizing
-LIB = lec25dscc25.v
-
-# the EECS 470 synthesis script
-TCL_SCRIPT = synth/470synth.tcl
-
-# Set the shell's pipefail option: causes return values through pipes to match the last non-zero value
-# (useful for, i.e. piping to `tee`)
-SHELL := $(SHELL) -o pipefail
-
-# The following are new in project 3:
-
-# you might need to update these build flags for project 4, but make sure you know what they do:
-# https://gcc.gnu.org/onlinedocs/gcc/RISC-V-Options.html
-CFLAGS     = -mno-relax -march=rv32im -mabi=ilp32 -nostartfiles -std=gnu11 -mstrict-align -mno-div
-# adjust the optimization if you want programs to run faster; this may obfuscate/change their instructions
-OFLAGS     = -O0
-ASFLAGS    = -mno-relax -march=rv32im -mabi=ilp32 -nostartfiles -Wno-main -mstrict-align
-OBJFLAGS   = -SD -M no-aliases
-OBJCFLAGS  = --set-section-flags .bss=contents,alloc,readonly
-OBJDFLAGS  = -SD -M numeric,no-aliases
 DEBUG_FLAG = -g
+CFLAGS =  -mno-relax -march=rv32im -mabi=ilp32 -nostartfiles -std=gnu11 -mstrict-align -mno-div 
+OFLAGS = -O0
+ASFLAGS = -mno-relax -march=rv32im -mabi=ilp32 -nostartfiles -Wno-main -mstrict-align
+OBJFLAGS = -SD -M no-aliases 
+OBJDFLAGS = -SD -M numeric,no-aliases
 
-# this is our RISC-V compiler toolchain
-# NOTE: you can use a local riscv install to compile programs by setting CAEN to 0
-CAEN = 0
+##########################################################################
+# IF YOU AREN'T USING A CAEN MACHINE, CHANGE THIS TO FALSE OR OVERRIDE IT
+CAEN = 1
+##########################################################################
 ifeq (1, $(CAEN))
-    GCC     = riscv gcc
-    OBJCOPY = riscv objcopy
-    OBJDUMP = riscv objdump
-    AS      = riscv as
-    ELF2HEX = riscv elf2hex
+	GCC = riscv gcc
+	OBJDUMP = riscv objdump
+	AS = riscv as
+	ELF2HEX = riscv elf2hex
 else
-    GCC     = riscv32-unknown-elf-gcc
-    OBJCOPY = riscv32-unknown-elf-objcopy
-    OBJDUMP = riscv32-unknown-elf-objdump
-    AS      = riscv32-unknown-elf-as
-    ELF2HEX = elf2hex
+	GCC = riscv64-unknown-elf-gcc
+	OBJDUMP = riscv64-unknown-elf-objdump
+	AS = riscv64-unknown-elf-as
+	ELF2HEX = elf2hex
 endif
 
 GREP = grep -E --color=auto
@@ -613,3 +507,153 @@ PRINT_COLOR = if [ -t 0 ]; then tput setaf $(1) ; fi; echo $(2); if [ -t 0 ]; th
 # Make functions are called like this:
 # $(call PRINT_COLOR,3,Hello World!)
 # NOTE: adding '@' to the start of a line avoids printing the command itself, only the output
+=======
+
+VCS = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+tgl
+URG = urg -dir simv.vdb -format text
+VCS_COV = vcs -V -sverilog +vc -Mupdate -line -full64 +vcs+vcdpluson -debug_pp -cm line+tgl
+LIB = /afs/umich.edu/class/eecs470/lib/verilog/lec25dscc25.v
+
+# SIMULATION CONFIG
+
+HEADERS     = $(wildcard *.svh)
+TESTBENCH   = testbench/testbench.sv
+TESTBENCH  += testbench/mem.sv
+TESTBENCH  += $(wildcard testbench/*.c)
+PIPEFILES   = $(wildcard verilog/*.sv)
+SIMFILES    = $(PIPEFILES)
+
+# Modify here to test single module
+MODULE_TESTBENCH = test/reservation_station_testbench.sv
+MODULE_SIMFILES = verilog/data_structure/reservation_station.sv
+MODULE_HEADER = verilog/sys_defs.svh
+MODULE_TCL = null
+MODULE_SYN = null
+MODULE_PRINT = null
+
+
+# SYNTHESIS CONFIG
+SYNTH_DIR = ./synth
+
+export HEADERS
+export PIPEFILES
+
+export PIPELINE_NAME = pipeline
+
+PIPELINE  = $(SYNTH_DIR)/$(PIPELINE_NAME).vg 
+SYNFILES  = $(PIPELINE) $(SYNTH_DIR)/$(PIPELINE_NAME)_svsim.sv
+
+# Passed through to .tcl scripts:
+export CACHE_NAME = icache
+export CLOCK_NET_NAME = clk
+export RESET_NET_NAME = reset
+export CLOCK_PERIOD   = 24	# TODO: You will need to make match SYNTH_CLOCK_PERIOD in sys_defs
+                                #       and make this more aggressive
+
+################################################################################
+## RULES
+################################################################################
+cvg:	$(MODULE_HEADER) $(MODULE_SIMFILES) $(MODULE_TESTBENCH) 
+	$(VCS_COV) $^ -o simv
+	./simv -cm line+tgl
+	$(URG)
+# Default target:
+all:    simv
+	./simv | tee program.out
+
+.PHONY: all
+
+# Simulation:
+
+sim:	simv
+	./simv | tee sim_program.out
+
+simv:	$(HEADERS) $(SIMFILES) $(TESTBENCH)
+	$(VCS) $^ -o simv
+
+test:	module_simv
+	./module_simv | tee program.out
+
+module_dve_syn: module_syn_simv 
+	./module_syn_simv -gui &
+
+
+module_simv:	$(MODULE_HEADER) $(MODULE_SIMFILES) $(MODULE_TESTBENCH)
+	$(VCS) $(MODULE_HEADER) $(MODULE_TESTBENCH) $(MODULE_SIMFILES) -o module_simv
+
+module_dve:	$(MODULE_HEADER) $(MODULE_SIMFILES) $(MODULE_TESTBENCH) 
+	$(VCS) +memcbk $(MODULE_HEADER) $(MODULE_TESTBENCH) $(MODULE_SIMFILES) -o module_dve -R -gui
+
+module_syn_simv: $(MODULE_HEADER) $(MODULE_SYN) $(MODULE_TESTBENCH)
+	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o module_syn_simv 
+
+module_syn: module_syn_simv
+		 ./module_syn_simv | tee module_program.out
+
+$(MODULE_SYN): $(MODULE_HEADER) $(MODULE_SIMFILES) $(MODULE_TCL)
+		dc_shell-t -f $(MODULE_TCL) | tee synth.out
+
+.PHONY: sim
+
+# Programs
+
+compile: $(CRT) $(LINKERS)
+	$(GCC) $(CFLAGS) $(OFLAGS) $(CRT) $(SOURCE) -T $(LINKERS) -o program.elf
+	$(GCC) $(CFLAGS) $(DEBUG_FLAG) $(CRT) $(SOURCE) -T $(LINKERS) -o program.debug.elf
+assemble: $(ASLINKERS)
+	$(GCC) $(ASFLAGS) $(SOURCE) -T $(ASLINKERS) -o program.elf 
+	cp program.elf program.debug.elf
+disassemble: program.debug.elf
+	riscv objcopy --set-section-flags .bss=contents,alloc,readonly program.debug.elf
+	$(OBJDUMP) $(OBJFLAGS) program.debug.elf > program.dump
+	$(OBJDUMP) $(OBJDFLAGS) program.debug.elf > program.debug.dump
+	rm program.debug.elf
+hex: program.elf
+	$(ELF2HEX) 8 8192 program.elf > program.mem
+
+program: compile disassemble hex
+	@:
+
+debug_program:
+	gcc -lm -g -std=gnu11 -DDEBUG $(SOURCE) -o debug_bin
+assembly: assemble disassemble hex
+	@:
+
+
+# Synthesis
+
+$(PIPELINE): $(SIMFILES) $(SYNTH_DIR)/$(PIPELINE_NAME).tcl
+	cd $(SYNTH_DIR) && dc_shell-t -f ./$(PIPELINE_NAME).tcl | tee $(PIPELINE_NAME)_synth.out
+	echo -e -n 'H\n1\ni\n`timescale 1ns/100ps\n.\nw\nq\n' | ed $(PIPELINE)
+
+syn:	syn_simv 
+	./syn_simv | tee syn_program.out
+
+syn_simv:	$(HEADERS) $(SYNFILES) $(TESTBENCH)
+	$(VCS) $^ $(LIB) +define+SYNTH_TEST -o syn_simv 
+
+.PHONY: syn
+
+# Debugging
+
+dve:	sim
+	./simv -gui &
+
+dve_syn: syn_sim 
+	./syn_simv -gui &
+
+.PHONY: dve dve_syn 
+
+clean:
+	rm -rf *simv *simv.daidir csrc vcs.key program.out *.key
+	rm -rf vis_simv vis_simv.daidir
+	rm -rf dve* inter.vpd DVEfiles module_dve module_dve.daidir module_syn_dve.daidir
+	rm -rf syn_simv syn_simv.daidir syn_program.out
+	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
+	rm -f *.elf *.dump *.mem debug_bin
+
+nuke:	clean
+	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
+	rm -rf synth/*.out command.log synth/*.db synth/*.svf synth/*.mr synth/*.pvl
+	rm -rf *.chk *.rep *.ddc *.vg
+
