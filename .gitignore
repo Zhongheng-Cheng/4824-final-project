@@ -48,7 +48,7 @@ novas*
 *.wb
 *.ppln
 *.elf
-*.mem
+# *.mem
 *.dump
 *.dump_*
 output/
