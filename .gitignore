@@ -52,3 +52,6 @@ novas*
 *.dump
 *.dump_*
 output/
+
+*.xml
+*.vpd
