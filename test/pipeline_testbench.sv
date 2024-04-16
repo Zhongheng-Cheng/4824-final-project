@@ -627,7 +627,7 @@ module testbench;
         reset = 1'b1;
         @(posedge clock);
         @(posedge clock);
-        $readmemh("btest1.mem", tb_mem);
+        $readmemh("programs/btest1.mem", tb_mem);
 	@(posedge clock);
         @(posedge clock);
         $fdisplayh(wb_fileno, "%p",tb_mem[1]);
