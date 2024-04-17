@@ -253,38 +253,29 @@ module testbench;
     function dump_output;
         // Modules
             $fdisplay(pipe_out, "ROB Table");
-                // $fdisplay(pipe_out, "   | t_idx | told_idx | ar_idx | complete | halt | precise | target_pc  | dest_value |   NPC    |");
+                // t_idx | told_idx | ar_idx | complete | halt | precise | target_pc | dest_value | NPC
                 for (int i = 0; i < `N_ROB_ENTRIES; i++)
                     $fdisplay(pipe_out, "%2d| %2d| %2d| %2d|%b|%b|%b| %5d| %10d|%x",
                         i, rob_table_display[i].t_idx, rob_table_display[i].told_idx, rob_table_display[i].ar_idx, rob_table_display[i].complete, rob_table_display[i].halt, rob_table_display[i].precise_state_enable, rob_table_display[i].target_pc, rob_table_display[i].dest_value, rob_table_display[i].NPC);
-            // $fdisplay(pipe_out, "");
 
             $fdisplay(pipe_out, "Physical Register File");
-                // $fdisplay(pipe_out, "   |   value    ");
+                // value
                 for (int i = 0; i < `N_PHYS_REG; i++)
                     $fdisplay(pipe_out,"%2d| %d", 
                         i, physical_register_display[i]);
-            // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "RS Table:");
-                $fdisplay(pipe_out, "   |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
+            $fdisplay(pipe_out, "RS Table");
+                // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
-                    $fdisplay(pipe_out, "%2d | %x | %x |     %2d      |     %2d      |   %2d   |   %2d    |   %2d   | %d |",
-                        i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, rs_table[i].inst);
+                    $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %d| %d",
+                        i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
                 
-                $fdisplay(pipe_out, "   | opa_select |  opb_select | fu_sel | op_sel | alu_func | mult_func |");
+                // opa_select | opb_select | fu_sel | op_sel | reg1_ready | reg2_ready | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid
                 for (int i = 0; i < `N_RS_ENTRIES; i++)
-                    $fdisplay(pipe_out, "%2d |     %d      |     %d      |   %d    |   %d    |    %d    |    %d     |",
-                        i, rs_table[i].opa_select, rs_table[i].opb_select, rs_table[i].fu_sel, rs_table[i].op_sel, rs_table[i].alu_func, rs_table[i].mult_func);
-                
-                $fdisplay(pipe_out, "   | reg1_ready | reg2_ready | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid |");
-                for (int i = 0; i < `N_RS_ENTRIES; i++)
-                    $fdisplay(pipe_out, "%2d |     %b      |     %b      |   %b    |   %b    |      %b      |       %b       |  %b   |    %b    |   %b    |   %b   |", 
-                        i, rs_table[i].reg1_ready, rs_table[i].reg2_ready, rs_table[i].rd_mem, rs_table[i].wr_mem, rs_table[i].cond_branch, rs_table[i].uncond_branch, rs_table[i].halt, rs_table[i].illegal, rs_table[i].csr_op, rs_table[i].valid);
-            // $fdisplay(pipe_out, "");
+                    $fdisplay(pipe_out, "%2d| %1d | %1d |  %d |  %d | %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b ",
+                        i, rs_table[i].opa_select, rs_table[i].opb_select, rs_table[i].fu_sel, rs_table[i].op_sel, rs_table[i].reg1_ready, rs_table[i].reg2_ready, rs_table[i].rd_mem, rs_table[i].wr_mem, rs_table[i].cond_branch, rs_table[i].uncond_branch, rs_table[i].halt, rs_table[i].illegal, rs_table[i].csr_op, rs_table[i].valid);
 
             $fdisplay(pipe_out, "Maptable");
-                // $fdisplay(pipe_out, "    | map | d ");
                 for (int i = 0; i < `N_ARCH_REG; i++) begin
                     if (maptable_packet.done[i])
                         $fdisplay(pipe_out, "  %2d+ ", 
@@ -292,10 +283,7 @@ module testbench;
                     else
                         $fdisplay(pipe_out, "  %2d  ", 
                             maptable_packet.map[i]);
-                    
                 end
-        //     $fdisplay(pipe_out, "");
-        // $fdisplay(pipe_out, "");
 
         $fdisplay(pipe_out, "-------------FETCH-------------");
             // $fdisplay(pipe_out, "");
@@ -486,9 +474,7 @@ module testbench;
 
     always @(negedge clock) begin
         if (~reset) begin
-            // $fdisplay(pipe_out, "");
             $fdisplay(pipe_out,"cycle %d", clock_count);
-            // $fdisplay(pipe_out, "");
             dump_output();
         end
         else begin

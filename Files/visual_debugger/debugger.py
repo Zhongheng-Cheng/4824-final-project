@@ -3,6 +3,7 @@ import curses
 rob = []
 prf = []
 map_table = []
+rs = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -17,6 +18,7 @@ def read_pipeline_output(filepath):
                 rob.append([])
                 prf.append([])
                 map_table.append([])
+                rs.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
@@ -29,6 +31,14 @@ def read_pipeline_output(filepath):
                 for _ in range(32):
                     line = fo.readline().strip('\n')
                     map_table[cycle].append(line)
+            elif line == "RS Table":
+                for _ in range(16):
+                    line = fo.readline().strip('\n')
+                    rs[cycle].append(line)
+                for _ in range(16):
+                    line = fo.readline().strip('\n')
+                    rs[cycle].append(line)
+                
 
 class Cycle():
     def __init__(self):
@@ -106,6 +116,21 @@ def main(stdscr):
             wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
         wins["prf"].refresh()
 
+        # create window for Reservation Stations (RS)
+        wins["rs"] = new_window(title="RS", 
+                                nlines=36, 
+                                ncols=64, 
+                                begin_y=0, 
+                                begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
+                                )
+        wins['rs'].addstr(1, 1, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst |alu|mul")
+        for i in range(16):
+            wins['rs'].addstr(i + 2, 1, rs[min(cycle.now, max_cycle - 1)][i])
+        wins['rs'].addstr(18, 1, "  |asl|bsl|fusl|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld")
+        for i in range(16):
+            wins['rs'].addstr(i + 19, 1, rs[min(cycle.now, max_cycle - 1)][i + 16])
+        wins["rs"].refresh()
+
         # # create window for Arch Table
         # wins["arch_table"] = new_window(title="Arch Table", 
         #                                 nlines=10, 
@@ -128,25 +153,14 @@ def main(stdscr):
 
         # create window for Map Table
         wins["map_table"] = new_window(title="Map Table", 
-                                    nlines=19, 
+                                    nlines=18, 
                                     ncols=15, 
                                     begin_y=13, 
                                     begin_x=0
                                     )
-        wins['map_table'].addstr(1, 1, "  map |  map ")
         for i in range(16):
-            wins['map_table'].addstr(i + 2, 1, map_table[min(cycle.now, max_cycle - 1)][i] + '|' + map_table[min(cycle.now, max_cycle - 1)][i + 16])
+            wins['map_table'].addstr(i + 1, 1, map_table[min(cycle.now, max_cycle - 1)][i] + '|' + map_table[min(cycle.now, max_cycle - 1)][i + 16])
         wins["map_table"].refresh()
-        
-        # # create window for Reservation Stations (RS)
-        # wins["rs"] = new_window(title="RS", 
-        #                         nlines=10, 
-        #                         ncols=35, 
-        #                         begin_y=10, 
-        #                         begin_x=wins['rob'].getbegyx()[1]
-        #                         )
-        # wins['rs'].addstr(1, 1, " #|FU |Busy|op   |T   |T1  |T2  ")
-        # wins["rs"].refresh()
 
         # # create window for Free List
         # wins["free_list"] = new_window(title="Free List", 
