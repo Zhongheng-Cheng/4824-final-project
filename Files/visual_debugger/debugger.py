@@ -2,6 +2,7 @@ import curses
 
 rob = []
 prf = []
+map_table = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -15,6 +16,7 @@ def read_pipeline_output(filepath):
                 cycle = int(line.split()[-1])
                 rob.append([])
                 prf.append([])
+                map_table.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
@@ -23,6 +25,10 @@ def read_pipeline_output(filepath):
                 for _ in range(64):
                     line = fo.readline().strip('\n')
                     prf[cycle].append(line)
+            elif line == "Maptable":
+                for _ in range(32):
+                    line = fo.readline().strip('\n')
+                    map_table[cycle].append(line)
 
 class Cycle():
     def __init__(self):
@@ -100,15 +106,17 @@ def main(stdscr):
             wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
         wins["prf"].refresh()
 
-        # # create window for Map Table
-        # wins["map_table"] = new_window(title="Map Table", 
-        #                             nlines=10, 
-        #                             ncols=10, 
-        #                             begin_y=0, 
-        #                             begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
-        #                             )
-        # wins['map_table'].addstr(1, 1, "Reg|T+  ")
-        # wins["map_table"].refresh()
+        # create window for Map Table
+        wins["map_table"] = new_window(title="Map Table", 
+                                    nlines=35, 
+                                    ncols=16, 
+                                    begin_y=0, 
+                                    begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
+                                    )
+        wins['map_table'].addstr(1, 1, " No.| map | d ")
+        for i in range(32):
+            wins['map_table'].addstr(i + 2, 1, map_table[min(cycle.now, max_cycle - 1)][i])
+        wins["map_table"].refresh()
 
         # # create window for Arch Table
         # wins["arch_table"] = new_window(title="Arch Table", 
@@ -232,4 +240,5 @@ if __name__ == "__main__":
     #     print(rob[cycle.now][i])
     # print(len(rob))
     # print(len(prf))
+    # print(map_table[:10])
     curses.wrapper(main)

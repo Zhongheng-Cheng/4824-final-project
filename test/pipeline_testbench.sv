@@ -283,11 +283,11 @@ module testbench;
                         i, rs_table[i].reg1_ready, rs_table[i].reg2_ready, rs_table[i].rd_mem, rs_table[i].wr_mem, rs_table[i].cond_branch, rs_table[i].uncond_branch, rs_table[i].halt, rs_table[i].illegal, rs_table[i].csr_op, rs_table[i].valid);
             // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "Maptable:");
-                $fdisplay(pipe_out, "   | map | done |          | map | done |          | map | done |          | map | done |");
-                for (int i = 0; i < (`N_ARCH_REG / 4); i++)
-                    $fdisplay(pipe_out, "%2d | %2d  |  %b   |       %2d | %2d  |  %b   |       %2d | %2d  |  %b   |       %2d | %2d  |  %b   |", 
-                        i, maptable_packet.map[i], maptable_packet.done[i], (i + 8), maptable_packet.map[i + 8], maptable_packet.done[i + 8], (i + 16), maptable_packet.map[i + 16], maptable_packet.done[i + 16], (i + 24), maptable_packet.map[i + 24], maptable_packet.done[i + 24]);
+            $fdisplay(pipe_out, "Maptable");
+                // $fdisplay(pipe_out, "    | map | d ");
+                for (int i = 0; i < `N_ARCH_REG; i++)
+                    $fdisplay(pipe_out, " %2d |  %2d | %b ", 
+                        i, maptable_packet.map[i], maptable_packet.done[i]);
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");
 
