@@ -62,6 +62,19 @@ class Cycle():
             self.now = 999
         return
 
+class Page():
+    def __init__(self):
+        self.pages = ["Modules", "Stages"]
+        self.curr_index = 0
+        return
+    
+    def next_page(self):
+        self.curr_index = (self.curr_index + 1) % len(self.pages)
+        return
+    
+    def curr_page(self):
+        return self.pages[self.curr_index]
+
 
 def new_window(title, nlines, ncols, begin_y, begin_x):
     win = curses.newwin(nlines, ncols, begin_y, begin_x)
@@ -73,11 +86,10 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
 
 def main(stdscr):
 
-    def update_ui():
-
+    def update_ui_main():
         # create window for Keys
         wins["keys"] = new_window(title="Keys", 
-                                  nlines=10, 
+                                  nlines=11, 
                                   ncols=15, 
                                   begin_y=0, 
                                   begin_x=0
@@ -90,7 +102,20 @@ def main(stdscr):
         wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
         wins["keys"].addstr(7, 1, "T: end go to ")
         wins["keys"].addstr(8, 1, "B: backspace ")
+        wins["keys"].addstr(9, 1, "C: next page ")
         wins["keys"].refresh()
+
+        # create window for Cycle
+        wins["cycle"] = new_window(title="Cycle", 
+                                nlines=3, 
+                                ncols=15, 
+                                begin_y=11, 
+                                begin_x=0
+                                )
+        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+        wins['cycle'].refresh()
+
+    def update_ui_modules():
 
         # create window for Reorder Buffer (RoB)
         wins["rob"] = new_window(title="RoB", 
@@ -141,21 +166,11 @@ def main(stdscr):
         # wins['arch_table'].addstr(1, 1, "Reg|T+  ")
         # wins["arch_table"].refresh()
 
-        # create window for Cycle
-        wins["cycle"] = new_window(title="Cycle", 
-                                nlines=3, 
-                                ncols=15, 
-                                begin_y=10, 
-                                begin_x=0
-                                )
-        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
-        wins['cycle'].refresh()
-
         # create window for Map Table
         wins["map_table"] = new_window(title="Map Table", 
                                     nlines=18, 
                                     ncols=15, 
-                                    begin_y=13, 
+                                    begin_y=14, 
                                     begin_x=0
                                     )
         for i in range(16):
@@ -187,6 +202,20 @@ def main(stdscr):
 
         return
     
+    def update_ui_stages():
+        # # create window for Reorder Buffer (RoB)
+        # wins["rob"] = new_window(title="RoB", 
+        #                          nlines=35, 
+        #                          ncols=50, 
+        #                          begin_y=0, 
+        #                          begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+        #                          )
+        # wins['rob'].addstr(1, 1, "  | t | to| ar|c|h|p|tar_pc|  dest_val |   NPC  ")
+        # for i in range(32):
+        #     wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
+        # wins["rob"].refresh()
+        pass
+    
 
     # initialization
     wins = {"main": stdscr}
@@ -200,7 +229,6 @@ def main(stdscr):
 
     # main loop
     while True:
-        
         height, width = wins["main"].getmaxyx()
         if height < 25 or width < 100:
             wins['main'].clear()
@@ -208,7 +236,13 @@ def main(stdscr):
             wins["main"].refresh()
             wins["main"].getch()
             continue
-        update_ui()
+        wins["main"].clear()
+        wins["main"].refresh()
+        update_ui_main()
+        if page.curr_page() == "Modules":
+            update_ui_modules()
+        elif page.curr_page() == "Stages":
+            update_ui_stages()
 
         
         key_press = wins["main"].getch()
@@ -242,9 +276,14 @@ def main(stdscr):
             char = str(int(chr(key_press)))
             goto_input += char
 
+        # switch page
+        elif key_press == ord('c'):
+            page.next_page()
+
 
 if __name__ == "__main__":
     cycle = Cycle()
+    page = Page()
     max_cycle = read_pipeline_output("../pipeline.out")
     # for i in rob:
     #     for j in i:
