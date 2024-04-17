@@ -13,7 +13,7 @@
 #
 #
 
-SOURCE = test_progs/simple_test/mult.s
+SOURCE = test_progs/simple_test/alexnet.c
 
 CRT = crt.s
 LINKERS = linker.lds
