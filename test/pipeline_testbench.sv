@@ -285,9 +285,15 @@ module testbench;
 
             $fdisplay(pipe_out, "Maptable");
                 // $fdisplay(pipe_out, "    | map | d ");
-                for (int i = 0; i < `N_ARCH_REG; i++)
-                    $fdisplay(pipe_out, "%2d| %2d|%b", 
-                        i, maptable_packet.map[i], maptable_packet.done[i]);
+                for (int i = 0; i < `N_ARCH_REG; i++) begin
+                    if (maptable_packet.done[i])
+                        $fdisplay(pipe_out, "  %2d+ ", 
+                            maptable_packet.map[i]);
+                    else
+                        $fdisplay(pipe_out, "  %2d  ", 
+                            maptable_packet.map[i]);
+                    
+                end
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");
 

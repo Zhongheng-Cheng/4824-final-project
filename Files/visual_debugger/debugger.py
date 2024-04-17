@@ -106,18 +106,6 @@ def main(stdscr):
             wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
         wins["prf"].refresh()
 
-        # create window for Map Table
-        wins["map_table"] = new_window(title="Map Table", 
-                                    nlines=35, 
-                                    ncols=10, 
-                                    begin_y=0, 
-                                    begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
-                                    )
-        wins['map_table'].addstr(1, 1, "  |map|d")
-        for i in range(32):
-            wins['map_table'].addstr(i + 2, 1, map_table[min(cycle.now, max_cycle - 1)][i])
-        wins["map_table"].refresh()
-
         # # create window for Arch Table
         # wins["arch_table"] = new_window(title="Arch Table", 
         #                                 nlines=10, 
@@ -137,6 +125,18 @@ def main(stdscr):
                                 )
         wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
         wins['cycle'].refresh()
+
+        # create window for Map Table
+        wins["map_table"] = new_window(title="Map Table", 
+                                    nlines=19, 
+                                    ncols=15, 
+                                    begin_y=13, 
+                                    begin_x=0
+                                    )
+        wins['map_table'].addstr(1, 1, "  map |  map ")
+        for i in range(16):
+            wins['map_table'].addstr(i + 2, 1, map_table[min(cycle.now, max_cycle - 1)][i] + '|' + map_table[min(cycle.now, max_cycle - 1)][i + 16])
+        wins["map_table"].refresh()
         
         # # create window for Reservation Stations (RS)
         # wins["rs"] = new_window(title="RS", 
