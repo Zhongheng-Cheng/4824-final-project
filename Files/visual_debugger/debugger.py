@@ -1,9 +1,11 @@
 import curses
 
+superscalar_ways = 3
 rob = []
 prf = []
 map_table = []
 rs = []
+fetch = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -19,6 +21,7 @@ def read_pipeline_output(filepath):
                 prf.append([])
                 map_table.append([])
                 rs.append([])
+                fetch.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
@@ -38,6 +41,10 @@ def read_pipeline_output(filepath):
                 for _ in range(16):
                     line = fo.readline().strip('\n')
                     rs[cycle].append(line)
+            elif line == "FETCH":
+                for _ in range(superscalar_ways):
+                    line = fo.readline().strip('\n')
+                    fetch[cycle].append(line)
                 
 
 class Cycle():
@@ -203,17 +210,18 @@ def main(stdscr):
         return
     
     def update_ui_stages():
-        # # create window for Reorder Buffer (RoB)
-        # wins["rob"] = new_window(title="RoB", 
-        #                          nlines=35, 
-        #                          ncols=50, 
-        #                          begin_y=0, 
-        #                          begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-        #                          )
-        # wins['rob'].addstr(1, 1, "  | t | to| ar|c|h|p|tar_pc|  dest_val |   NPC  ")
-        # for i in range(32):
-        #     wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
-        # wins["rob"].refresh()
+        # create window for Fetch
+        wins["fetch"] = new_window(title="fetch", 
+                                   nlines=7, 
+                                   ncols=83, 
+                                   begin_y=0, 
+                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                   )
+        wins['fetch'].addstr(1, 1, " |p2Imem_addr|           fetch_packet          |      fetch_dispatch_packet      ")
+        wins['fetch'].addstr(2, 1, " |           |    inst   |   NPC   |    PC   |v|    inst   |   NPC   |    PC   |v")
+        for i in range(superscalar_ways):
+            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, len(rob) - 1)][i])
+        wins["fetch"].refresh()
         pass
     
 

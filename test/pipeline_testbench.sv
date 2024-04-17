@@ -285,25 +285,23 @@ module testbench;
                             maptable_packet.map[i]);
                 end
 
-        $fdisplay(pipe_out, "-------------FETCH-------------");
+        $fdisplay(pipe_out, "FETCH");
+            // $fdisplay(pipe_out, "proc2Imem_addr: | [0]: %d | [1]: %d | [2]: %d |", 
+            //     proc2Imem_addr[0], proc2Imem_addr[1], proc2Imem_addr[2]);
             // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "proc2Imem_addr: | [0]: %d | [1]: %d | [2]: %d |", 
-                proc2Imem_addr[0], proc2Imem_addr[1], proc2Imem_addr[2]);
-            // $fdisplay(pipe_out, "");
-
-            $fdisplay(pipe_out, "fetch_packet:");
-                $fdisplay(pipe_out, "  |    inst    |   NPC    |    PC    | valid |");
+            // $fdisplay(pipe_out, "fetch_packet:");
+                // $fdisplay(pipe_out, "  |    inst    |   NPC    |    PC    | valid |");
                 for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d | %d | %x | %x |   %b   |", 
-                        i, fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid);
+                    $fdisplay(pipe_out, "%1d| %10d| %d| %x| %x|%b| %d| %x| %x|%b", 
+                        i, proc2Imem_addr[i], fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
             // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "fetch_dispatch_packet:");
-                $fdisplay(pipe_out, "  |    inst    |   NPC    |    PC    | valid |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d | %d | %x | %x |   %b   |", 
-                        i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
+            // $fdisplay(pipe_out, "fetch_dispatch_packet:");
+            //     $fdisplay(pipe_out, "  |    inst    |   NPC    |    PC    | valid |");
+            //     for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+            //         $fdisplay(pipe_out, "%1d | %d | %x | %x |   %b   |", 
+            //             i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");
 
