@@ -255,14 +255,14 @@ module testbench;
             $fdisplay(pipe_out, "ROB Table");
                 // $fdisplay(pipe_out, "   | t_idx | told_idx | ar_idx | complete | halt | precise | target_pc  | dest_value |   NPC    |");
                 for (int i = 0; i < `N_ROB_ENTRIES; i++)
-                    $fdisplay(pipe_out, " %2d | %2d | %2d | %2d | %b | %b | %b |  %5d | %10d | %x ",
+                    $fdisplay(pipe_out, "%2d| %2d| %2d| %2d|%b|%b|%b| %5d| %10d|%x",
                         i, rob_table_display[i].t_idx, rob_table_display[i].told_idx, rob_table_display[i].ar_idx, rob_table_display[i].complete, rob_table_display[i].halt, rob_table_display[i].precise_state_enable, rob_table_display[i].target_pc, rob_table_display[i].dest_value, rob_table_display[i].NPC);
             // $fdisplay(pipe_out, "");
 
             $fdisplay(pipe_out, "Physical Register File");
                 // $fdisplay(pipe_out, "   |   value    ");
                 for (int i = 0; i < `N_PHYS_REG; i++)
-                    $fdisplay(pipe_out," %2d | %d ", 
+                    $fdisplay(pipe_out,"%2d| %d", 
                         i, physical_register_display[i]);
             // $fdisplay(pipe_out, "");
 
@@ -286,7 +286,7 @@ module testbench;
             $fdisplay(pipe_out, "Maptable");
                 // $fdisplay(pipe_out, "    | map | d ");
                 for (int i = 0; i < `N_ARCH_REG; i++)
-                    $fdisplay(pipe_out, " %2d |  %2d | %b ", 
+                    $fdisplay(pipe_out, "%2d| %2d|%b", 
                         i, maptable_packet.map[i], maptable_packet.done[i]);
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");

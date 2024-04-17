@@ -85,11 +85,11 @@ def main(stdscr):
         # create window for Reorder Buffer (RoB)
         wins["rob"] = new_window(title="RoB", 
                                  nlines=35, 
-                                 ncols=66, 
+                                 ncols=50, 
                                  begin_y=0, 
                                  begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                  )
-        wins['rob'].addstr(1, 1, " No.| t  | to | ar | c | h | p | tar_pc |  dest_val  |   NPC    ")
+        wins['rob'].addstr(1, 1, "  | t | to| ar|c|h|p|tar_pc|  dest_val |   NPC  ")
         for i in range(32):
             wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
         wins["rob"].refresh()
@@ -97,11 +97,11 @@ def main(stdscr):
         # create window for Physical Register File (PRF)
         wins["prf"] = new_window(title="PRF", 
                                  nlines=35, 
-                                 ncols=37, 
+                                 ncols=31, 
                                  begin_y=0, 
                                  begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
                                  )
-        wins['prf'].addstr(1, 1, " No.|   value    | No.|   value    ")
+        wins['prf'].addstr(1, 1, "  |   value   |  |   value   ")
         for i in range(32):
             wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
         wins["prf"].refresh()
@@ -109,11 +109,11 @@ def main(stdscr):
         # create window for Map Table
         wins["map_table"] = new_window(title="Map Table", 
                                     nlines=35, 
-                                    ncols=16, 
+                                    ncols=10, 
                                     begin_y=0, 
                                     begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
                                     )
-        wins['map_table'].addstr(1, 1, " No.| map | d ")
+        wins['map_table'].addstr(1, 1, "  |map|d")
         for i in range(32):
             wins['map_table'].addstr(i + 2, 1, map_table[min(cycle.now, max_cycle - 1)][i])
         wins["map_table"].refresh()
