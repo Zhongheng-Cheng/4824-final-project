@@ -259,11 +259,11 @@ module testbench;
                         i, rob_table_display[i].t_idx, rob_table_display[i].told_idx, rob_table_display[i].ar_idx, rob_table_display[i].complete, rob_table_display[i].halt, rob_table_display[i].precise_state_enable, rob_table_display[i].target_pc, rob_table_display[i].dest_value, rob_table_display[i].NPC);
             // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "Physical Register File: PRF");
-                $fdisplay(pipe_out, "   |   value    |          |   value    |          |   value    |          |   value    |");
-                for (int i = 0; i < (`N_PHYS_REG / 4); i++)
-                    $fdisplay(pipe_out,"%2d | %d |       %2d | %d |       %2d | %d |       %2d | %d |", 
-                        i, physical_register_display[i], (i + 16), physical_register_display[i + 16], (i + 32), physical_register_display[i + 32], (i + 48), physical_register_display[i + 48]);
+            $fdisplay(pipe_out, "Physical Register File");
+                // $fdisplay(pipe_out, "   |   value    ");
+                for (int i = 0; i < `N_PHYS_REG; i++)
+                    $fdisplay(pipe_out," %2d | %d ", 
+                        i, physical_register_display[i]);
             // $fdisplay(pipe_out, "");
 
             $fdisplay(pipe_out, "RS Table:");

@@ -1,23 +1,28 @@
 import curses
 
 rob = []
+prf = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
         while True:
-        # for _ in range(320):
             line = fo.readline()
             if not line:
-                return
+                return len(rob) # total number of lines
             
             line = line.strip('\n')
             if line[:5] == "cycle":
                 cycle = int(line.split()[-1])
                 rob.append([])
+                prf.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
                     rob[cycle].append(line)
+            elif line == "Physical Register File":
+                for _ in range(64):
+                    line = fo.readline().strip('\n')
+                    prf[cycle].append(line)
 
 class Cycle():
     def __init__(self):
@@ -78,10 +83,22 @@ def main(stdscr):
                                 begin_y=0, 
                                 begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                 )
-        wins['rob'].addstr(1, 1, "    | t  | to | ar | c | h | p | tar_pc |  dest_val  |   NPC    ")
+        wins['rob'].addstr(1, 1, " No.| t  | to | ar | c | h | p | tar_pc |  dest_val  |   NPC    ")
         for i in range(32):
             wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
         wins["rob"].refresh()
+
+        # create window for Physical Register File (PRF)
+        wins["prf"] = new_window(title="PRF", 
+                                 nlines=35, 
+                                 ncols=37, 
+                                 begin_y=0, 
+                                 begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
+                                 )
+        wins['prf'].addstr(1, 1, " No.|   value    | No.|   value    ")
+        for i in range(32):
+            wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
+        wins["prf"].refresh()
 
         # # create window for Map Table
         # wins["map_table"] = new_window(title="Map Table", 
@@ -206,7 +223,7 @@ def main(stdscr):
 
 if __name__ == "__main__":
     cycle = Cycle()
-    read_pipeline_output("../pipeline.out")
+    max_cycle = read_pipeline_output("../pipeline.out")
     # for i in rob:
     #     for j in i:
     #         print(j)
@@ -214,4 +231,5 @@ if __name__ == "__main__":
     # for i in range(32):
     #     print(rob[cycle.now][i])
     # print(len(rob))
+    # print(len(prf))
     curses.wrapper(main)
