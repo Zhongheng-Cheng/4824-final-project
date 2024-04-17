@@ -6,6 +6,7 @@ prf = []
 map_table = []
 rs = []
 fetch = []
+dispatch = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -22,6 +23,7 @@ def read_pipeline_output(filepath):
                 map_table.append([])
                 rs.append([])
                 fetch.append([])
+                dispatch.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
@@ -45,7 +47,10 @@ def read_pipeline_output(filepath):
                 for _ in range(superscalar_ways):
                     line = fo.readline().strip('\n')
                     fetch[cycle].append(line)
-                
+            elif line == "DISPATCH":
+                for _ in range(superscalar_ways): # dispatch_rs_packet
+                    line = fo.readline().strip('\n')
+                    dispatch[cycle].append(line)
 
 class Cycle():
     def __init__(self):
@@ -211,7 +216,7 @@ def main(stdscr):
     
     def update_ui_stages():
         # create window for Fetch
-        wins["fetch"] = new_window(title="fetch", 
+        wins["fetch"] = new_window(title="Fetch", 
                                    nlines=7, 
                                    ncols=83, 
                                    begin_y=0, 
@@ -220,9 +225,20 @@ def main(stdscr):
         wins['fetch'].addstr(1, 1, " |p2Imem_addr|           fetch_packet          |      fetch_dispatch_packet      ")
         wins['fetch'].addstr(2, 1, " |           |    inst   |   NPC   |    PC   |v|    inst   |   NPC   |    PC   |v")
         for i in range(superscalar_ways):
-            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, len(rob) - 1)][i])
+            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, max_cycle - 1)][i])
         wins["fetch"].refresh()
-        pass
+        
+        # create window for Dispatch
+        wins["dispatch"] = new_window(title="dispatch_rs_packet", 
+                                   nlines=6, 
+                                   ncols=126, 
+                                   begin_y=wins['fetch'].getbegyx()[0] + wins['fetch'].getmaxyx()[0], 
+                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                   )
+        wins['dispatch'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
+        for i in range(superscalar_ways):
+            wins['dispatch'].addstr(i + 2, 1, dispatch[min(cycle.now, max_cycle - 1)][i])
+        wins["dispatch"].refresh()
     
 
     # initialization
