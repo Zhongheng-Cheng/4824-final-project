@@ -61,11 +61,11 @@ def main(stdscr):
 
         # create window for Keys
         wins["keys"] = new_window(title="Keys", 
-                                nlines=10, 
-                                ncols=15, 
-                                begin_y=0, 
-                                begin_x=0
-                                )
+                                  nlines=10, 
+                                  ncols=15, 
+                                  begin_y=0, 
+                                  begin_x=0
+                                  )
         wins["keys"].addstr(1, 1, "Q: quit")
         wins["keys"].addstr(2, 1, "L: next cycle")
         wins["keys"].addstr(3, 1, "J: prev cycle")
@@ -78,11 +78,11 @@ def main(stdscr):
 
         # create window for Reorder Buffer (RoB)
         wins["rob"] = new_window(title="RoB", 
-                                nlines=35, 
-                                ncols=66, 
-                                begin_y=0, 
-                                begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                )
+                                 nlines=35, 
+                                 ncols=66, 
+                                 begin_y=0, 
+                                 begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                 )
         wins['rob'].addstr(1, 1, " No.| t  | to | ar | c | h | p | tar_pc |  dest_val  |   NPC    ")
         for i in range(32):
             wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
