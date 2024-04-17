@@ -6,7 +6,9 @@ prf = []
 map_table = []
 rs = []
 fetch = []
-dispatch = []
+dispatch_rs_packet = []
+dispatch_fetch_packet = []
+rob_dispatch_packet = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -23,7 +25,9 @@ def read_pipeline_output(filepath):
                 map_table.append([])
                 rs.append([])
                 fetch.append([])
-                dispatch.append([])
+                dispatch_rs_packet.append([])
+                rob_dispatch_packet.append([])
+                dispatch_fetch_packet.append([])
             elif line == "ROB Table":
                 for _ in range(32):
                     line = fo.readline().strip('\n')
@@ -50,7 +54,13 @@ def read_pipeline_output(filepath):
             elif line == "DISPATCH":
                 for _ in range(superscalar_ways): # dispatch_rs_packet
                     line = fo.readline().strip('\n')
-                    dispatch[cycle].append(line)
+                    rob_dispatch_packet[cycle].append(line)
+                for _ in range(2): # dispatch_fetch_packet
+                    line = fo.readline().strip('\n')
+                    dispatch_fetch_packet[cycle].append(line)
+                for _ in range(superscalar_ways): # dispatch_rs_packet
+                    line = fo.readline().strip('\n')
+                    dispatch_rs_packet[cycle].append(line)
 
 class Cycle():
     def __init__(self):
@@ -227,18 +237,41 @@ def main(stdscr):
         for i in range(superscalar_ways):
             wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, max_cycle - 1)][i])
         wins["fetch"].refresh()
+
+        # create window for dispatch_rs_packet
+        wins["rob_dispatch_packet"] = new_window(title="rob_dispatch", 
+                                   nlines=6, 
+                                   ncols=13, 
+                                   begin_y=0, 
+                                   begin_x=wins['fetch'].getbegyx()[1] + wins['fetch'].getmaxyx()[1]
+                                   )
+        wins['rob_dispatch_packet'].addstr(1, 1, " |stall|new")
+        for i in range(superscalar_ways):
+            wins['rob_dispatch_packet'].addstr(i + 2, 1, rob_dispatch_packet[min(cycle.now, max_cycle - 1)][i])
+        wins["rob_dispatch_packet"].refresh()
+
+        # create window for dispatch_fetch_packet
+        wins["dispatch_fetch_packet"] = new_window(title="dispatch_fetch", 
+                                   nlines=4, 
+                                   ncols=21, 
+                                   begin_y=0, 
+                                   begin_x=wins['rob_dispatch_packet'].getbegyx()[1] + wins['rob_dispatch_packet'].getmaxyx()[1]
+                                   )
+        for i in range(2):
+            wins['dispatch_fetch_packet'].addstr(i + 1, 1, dispatch_fetch_packet[min(cycle.now, max_cycle - 1)][i])
+        wins["dispatch_fetch_packet"].refresh()
         
-        # create window for Dispatch
-        wins["dispatch"] = new_window(title="dispatch_rs_packet", 
+        # create window for dispatch_rs_packet
+        wins["dispatch_rs_packet"] = new_window(title="dispatch_rs_packet", 
                                    nlines=6, 
                                    ncols=126, 
                                    begin_y=wins['fetch'].getbegyx()[0] + wins['fetch'].getmaxyx()[0], 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
-        wins['dispatch'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
+        wins['dispatch_rs_packet'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
         for i in range(superscalar_ways):
-            wins['dispatch'].addstr(i + 2, 1, dispatch[min(cycle.now, max_cycle - 1)][i])
-        wins["dispatch"].refresh()
+            wins['dispatch_rs_packet'].addstr(i + 2, 1, dispatch_rs_packet[min(cycle.now, max_cycle - 1)][i])
+        wins["dispatch_rs_packet"].refresh()
     
 
     # initialization

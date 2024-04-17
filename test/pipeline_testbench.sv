@@ -294,12 +294,15 @@ module testbench;
         $fdisplay(pipe_out, "DISPATCH");
             // $fdisplay(pipe_out, "rob_dispatch_packet:");
                 // $fdisplay(pipe_out, "  | stall | new_entry_idx |");
-                // for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                //     $fdisplay(pipe_out, "%1d |   %b   |      %2d       |", 
-                //         i, rob_dispatch_packet.stall[i], rob_dispatch_packet.new_entry_idx[i]);
+                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                    $fdisplay(pipe_out, "%1d|  %b  | %2d", 
+                        i, rob_dispatch_packet.stall[i], rob_dispatch_packet.new_entry_idx[i]);
 
-            // $fdisplay(pipe_out, "dispatch_fetch_packet: | first_stall_idx: %2d | enable: %b |", 
-                // dispatch_fetch_packet.first_stall_idx, dispatch_fetch_packet.enable);
+            // $fdisplay(pipe_out, "dispatch_fetch_packet: | first_stall_idx: %2d | enable: %b |",
+            $fdisplay(pipe_out, "first_stall_idx: %2d", 
+                dispatch_fetch_packet.first_stall_idx);
+            $fdisplay(pipe_out, "enable: %b", 
+                dispatch_fetch_packet.enable);
 
             // $fdisplay(pipe_out, "dispatch_rs_packet:");
                 // $fdisplay(pipe_out, "  |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
