@@ -7,7 +7,9 @@ rob = []
 prf = []
 map_table = []
 rs = []
-fetch = []
+proc2Imem_addr = []
+fetch_packet = []
+fetch_dispatch_packet = []
 dispatch_rs_packet = []
 dispatch_fetch_packet = []
 rob_dispatch_packet = []
@@ -26,20 +28,24 @@ def read_pipeline_output(filepath):
                 prf.append([])
                 map_table.append([])
                 rs.append([])
-                fetch.append([])
+                fetch_packet.append([])
+                fetch_dispatch_packet.append([])
+                proc2Imem_addr.append([])
                 dispatch_rs_packet.append([])
                 rob_dispatch_packet.append([])
                 dispatch_fetch_packet.append([])
             elif line == "ROB Table":
-                readnlines(fo, cycle, rob, 32)
+                readnlines(fo, cycle, rob, 33)
             elif line == "Physical Register File":
-                readnlines(fo, cycle, prf, 64)
+                readnlines(fo, cycle, prf, 33)
             elif line == "Maptable":
                 readnlines(fo, cycle, map_table, 32)
             elif line == "RS Table":
-                readnlines(fo, cycle, rs, 32)
+                readnlines(fo, cycle, rs, 34)
             elif line == "FETCH":
-                readnlines(fo, cycle, fetch, superscalar_ways)
+                readnlines(fo, cycle, proc2Imem_addr, 1 + superscalar_ways)
+                readnlines(fo, cycle, fetch_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, fetch_dispatch_packet, 1 + superscalar_ways)
             elif line == "DISPATCH":
                 readnlines(fo, cycle, rob_dispatch_packet, superscalar_ways)
                 readnlines(fo, cycle, dispatch_fetch_packet, 2)
@@ -98,6 +104,7 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
 def main(stdscr):
 
     def update_ui_main():
+
         # create window for Keys
         wins["keys"] = new_window(title="Keys", 
                                   nlines=11, 
@@ -126,6 +133,9 @@ def main(stdscr):
         wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
         wins['cycle'].refresh()
 
+        return
+    
+
     def update_ui_modules():
 
         # create window for Reorder Buffer (RoB)
@@ -135,9 +145,8 @@ def main(stdscr):
                                  begin_y=0, 
                                  begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                  )
-        wins['rob'].addstr(1, 1, "  | t | to| ar|c|h|p|tar_pc|  dest_val |   NPC  ")
-        for i in range(32):
-            wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, max_cycle)][i])
+        for i, line in enumerate(rob[min(cycle.now, max_cycle)]):
+            wins['rob'].addstr(i+1, 1, line)
         wins["rob"].refresh()
 
         # create window for Physical Register File (PRF)
@@ -147,9 +156,8 @@ def main(stdscr):
                                  begin_y=0, 
                                  begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
                                  )
-        wins['prf'].addstr(1, 1, "  |   value   |  |   value   ")
-        for i in range(32):
-            wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle)][i] + '|' + prf[min(cycle.now, max_cycle)][i + 32])
+        for i, line in enumerate(prf[min(cycle.now, max_cycle)]):
+            wins['prf'].addstr(i+1, 1, line)
         wins["prf"].refresh()
 
         # create window for Reservation Stations (RS)
@@ -159,12 +167,8 @@ def main(stdscr):
                                 begin_y=0, 
                                 begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
                                 )
-        wins['rs'].addstr(1, 1, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst |alu|mul")
-        for i in range(16):
-            wins['rs'].addstr(i + 2, 1, rs[min(cycle.now, max_cycle)][i])
-        wins['rs'].addstr(18, 1, "  |asl|bsl|fusl|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld")
-        for i in range(16):
-            wins['rs'].addstr(i + 19, 1, rs[min(cycle.now, max_cycle)][i + 16])
+        for i, line in enumerate(rs[min(cycle.now, max_cycle)]):
+            wins['rs'].addstr(i+1, 1, line)
         wins["rs"].refresh()
 
         # create window for Map Table
@@ -180,26 +184,48 @@ def main(stdscr):
 
         return
     
+
     def update_ui_stages():
+
         # create window for Fetch
-        wins["fetch"] = new_window(title="Fetch", 
-                                   nlines=7, 
-                                   ncols=83, 
+        wins["proc2Imem_addr"] = new_window(title="proc2Imem_addr", 
+                                   nlines=6, 
+                                   ncols=15, 
                                    begin_y=0, 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
-        wins['fetch'].addstr(1, 1, " |p2Imem_addr|           fetch_packet          |      fetch_dispatch_packet      ")
-        wins['fetch'].addstr(2, 1, " |           |    inst   |   NPC   |    PC   |v|    inst   |   NPC   |    PC   |v")
-        for i in range(superscalar_ways):
-            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, max_cycle)][i])
-        wins["fetch"].refresh()
+        for i, line in enumerate(proc2Imem_addr[min(cycle.now, max_cycle)]):
+            wins['proc2Imem_addr'].addstr(i+1, 1, line)
+        wins["proc2Imem_addr"].refresh()
+
+        # create window for fetch_packet
+        wins["fetch_packet"] = new_window(title="fetch_packet", 
+                                   nlines=6, 
+                                   ncols=37, 
+                                   begin_y=0, 
+                                   begin_x=wins['proc2Imem_addr'].getbegyx()[1] + wins['proc2Imem_addr'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(fetch_packet[min(cycle.now, max_cycle)]):
+            wins['fetch_packet'].addstr(i+1, 1, line)
+        wins["fetch_packet"].refresh()
+
+        # create window for fetch_dispatch_packet
+        wins["fetch_dispatch_packet"] = new_window(title="fetch_dispatch_packet", 
+                                   nlines=6, 
+                                   ncols=37, 
+                                   begin_y=0, 
+                                   begin_x=wins['fetch_packet'].getbegyx()[1] + wins['fetch_packet'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(fetch_dispatch_packet[min(cycle.now, max_cycle)]):
+            wins['fetch_dispatch_packet'].addstr(i+1, 1, line)
+        wins["fetch_dispatch_packet"].refresh()
 
         # create window for dispatch_rs_packet
         wins["rob_dispatch_packet"] = new_window(title="rob_dispatch", 
                                    nlines=6, 
                                    ncols=13, 
                                    begin_y=0, 
-                                   begin_x=wins['fetch'].getbegyx()[1] + wins['fetch'].getmaxyx()[1]
+                                   begin_x=wins['fetch_dispatch_packet'].getbegyx()[1] + wins['fetch_dispatch_packet'].getmaxyx()[1]
                                    )
         wins['rob_dispatch_packet'].addstr(1, 1, " |stall|new")
         for i in range(superscalar_ways):
@@ -221,7 +247,7 @@ def main(stdscr):
         wins["dispatch_rs_packet"] = new_window(title="dispatch_rs_packet", 
                                    nlines=6, 
                                    ncols=126, 
-                                   begin_y=wins['fetch'].getbegyx()[0] + wins['fetch'].getmaxyx()[0], 
+                                   begin_y=wins['fetch_packet'].getbegyx()[0] + wins['fetch_packet'].getmaxyx()[0], 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
         wins['dispatch_rs_packet'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
@@ -298,13 +324,4 @@ if __name__ == "__main__":
     cycle = Cycle()
     page = Page()
     max_cycle = read_pipeline_output("../pipeline.out")
-    # for i in rob:
-    #     for j in i:
-    #         print(j)
-    #     print()
-    # for i in range(32):
-    #     print(rob[cycle.now][i])
-    # print(len(rob))
-    # print(len(prf))
-    # print(map_table[:10])
     curses.wrapper(main)
