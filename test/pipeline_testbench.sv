@@ -294,13 +294,13 @@ module testbench;
                 $fdisplay(pipe_out, "%1d| %10d", 
                     i, proc2Imem_addr[i]);
             // proc2Imem_addr | fetch_packet: inst | NPC | PC | valid | fetch_dispatch_packet: inst | NPC | PC | valid");
-            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |v");
+            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %d| %x| %x|%b", 
+                $fdisplay(pipe_out, "%1d| %d| %x| %x| %b ", 
                     i, fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid);
-            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |v");
+            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %d| %x| %x|%b", 
+                $fdisplay(pipe_out, "%1d| %d| %x| %x| %b ", 
                     i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
 
         $fdisplay(pipe_out, "DISPATCH");
@@ -350,15 +350,16 @@ module testbench;
 
             // $fdisplay(pipe_out, "rs_issue_packet:");
             // $fdisplay(pipe_out, "  |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
-            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   ");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS ; i++)
-                $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d",
-                    i, rs_issue_packet[i].NPC, rs_issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, rs_issue_packet[i].pr_idx, rs_issue_packet[i].rob_idx, rs_issue_packet[i].ar_idx, rs_issue_packet[i].inst);
+                $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %1d | %1d |  %d |  %d | %b | %b | %b| %b|  %b | %b |   %b  | %b ",
+                    i, rs_issue_packet[i].NPC, rs_issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, rs_issue_packet[i].pr_idx, rs_issue_packet[i].rob_idx, rs_issue_packet[i].ar_idx, rs_issue_packet[i].inst, rs_issue_packet[i].opa_select, rs_issue_packet[i].opb_select, rs_issue_packet[i].fu_sel, rs_issue_packet[i].op_sel, rs_issue_packet[i].rd_mem, rs_issue_packet[i].wr_mem, rs_issue_packet[i].cond_branch, rs_issue_packet[i].uncond_branch, rs_issue_packet[i].halt, rs_issue_packet[i].illegal, rs_issue_packet[i].csr_op, rs_issue_packet[i].valid);
             
-            $fdisplay(pipe_out, "  | opa_select | opb_select | fu_sel | op_sel | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid |");
-            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d |     %d      |     %d     |   %d    |   %d    |   %b    |   %b    |      %b      |       %b       |  %b   |    %b    |   %b    |   %b   |",
-                    i, rs_issue_packet[i].opa_select, rs_issue_packet[i].opb_select, rs_issue_packet[i].fu_sel, rs_issue_packet[i].op_sel, rs_issue_packet[i].rd_mem, rs_issue_packet[i].wr_mem, rs_issue_packet[i].cond_branch, rs_issue_packet[i].uncond_branch, rs_issue_packet[i].halt, rs_issue_packet[i].illegal, rs_issue_packet[i].csr_op, rs_issue_packet[i].valid);
+            // $fdisplay(pipe_out, "  | opa_select | opb_select | fu_sel | op_sel | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid |");
+            // $fdisplay(pipe_out, " |asl|bsl|fusl|opsl|rdm|wrm|cb|ub|halt|ilg|csr_op|v");
+            // for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+            //     $fdisplay(pipe_out, "%1d| %1d | %1d |  %d |  %d | %b | %b | %b| %b|  %b | %b |   %b  |%b",
+            //         i, rs_issue_packet[i].opa_select, rs_issue_packet[i].opb_select, rs_issue_packet[i].fu_sel, rs_issue_packet[i].op_sel, rs_issue_packet[i].rd_mem, rs_issue_packet[i].wr_mem, rs_issue_packet[i].cond_branch, rs_issue_packet[i].uncond_branch, rs_issue_packet[i].halt, rs_issue_packet[i].illegal, rs_issue_packet[i].csr_op, rs_issue_packet[i].valid);
             // $fdisplay(pipe_out, "");
 
             $fdisplay(pipe_out, "issue_packet:");

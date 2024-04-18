@@ -211,7 +211,7 @@ def main(stdscr):
         # create window for fetch_packet
         wins["fetch_packet"] = new_window(title="fetch_packet", 
                                    nlines=6, 
-                                   ncols=37, 
+                                   ncols=39, 
                                    begin_y=0, 
                                    begin_x=wins['proc2Imem_addr'].getbegyx()[1] + wins['proc2Imem_addr'].getmaxyx()[1]
                                    )
@@ -222,7 +222,7 @@ def main(stdscr):
         # create window for fetch_dispatch_packet
         wins["fetch_dispatch_packet"] = new_window(title="fetch_dispatch_packet", 
                                    nlines=6, 
-                                   ncols=37, 
+                                   ncols=39, 
                                    begin_y=0, 
                                    begin_x=wins['fetch_packet'].getbegyx()[1] + wins['fetch_packet'].getmaxyx()[1]
                                    )
@@ -289,7 +289,7 @@ def main(stdscr):
         # create window for rs_issue_packet
         wins["rs_issue_packet"] = new_window(title="rs_issue_packet", 
                                    nlines=6, 
-                                   ncols=55, 
+                                   ncols=107, 
                                    begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
                                    begin_x=wins['dispatch_maptable_packet'].getbegyx()[1] + wins['dispatch_maptable_packet'].getmaxyx()[1]
                                    )
