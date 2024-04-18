@@ -13,6 +13,8 @@ fetch_dispatch_packet = []
 dispatch_rs_packet = []
 dispatch_fetch_packet = []
 rob_dispatch_packet = []
+dispatch_rob_packet = []
+dispatch_maptable_packet = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -34,6 +36,8 @@ def read_pipeline_output(filepath):
                 dispatch_rs_packet.append([])
                 rob_dispatch_packet.append([])
                 dispatch_fetch_packet.append([])
+                dispatch_rob_packet.append([])
+                dispatch_maptable_packet.append([])
             elif line == "ROB Table":
                 readnlines(fo, cycle, rob, 33)
             elif line == "Physical Register File":
@@ -50,6 +54,8 @@ def read_pipeline_output(filepath):
                 readnlines(fo, cycle, rob_dispatch_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, dispatch_fetch_packet, 2)
                 readnlines(fo, cycle, dispatch_rs_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, dispatch_rob_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, dispatch_maptable_packet, 1 + superscalar_ways)
 
 def readnlines(fo, cycle, lst, n):
     for _ in range(n):
@@ -252,7 +258,30 @@ def main(stdscr):
         for i, line in enumerate(dispatch_rs_packet[min(cycle.now, max_cycle)]):
             wins['dispatch_rs_packet'].addstr(i+1, 1, line)
         wins["dispatch_rs_packet"].refresh()
-    
+
+        # create window for dispatch_rob_packet
+        wins["dispatch_rob_packet"] = new_window(title="dispatch_rob_packet", 
+                                   nlines=6, 
+                                   ncols=27, 
+                                   begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
+                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(dispatch_rob_packet[min(cycle.now, max_cycle)]):
+            wins['dispatch_rob_packet'].addstr(i+1, 1, line)
+        wins["dispatch_rob_packet"].refresh()
+
+        # create window for dispatch_maptable_packet
+        wins["dispatch_maptable_packet"] = new_window(title="dispatch_map", 
+                                   nlines=6, 
+                                   ncols=13, 
+                                   begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
+                                   begin_x=wins['dispatch_rob_packet'].getbegyx()[1] + wins['dispatch_rob_packet'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(dispatch_maptable_packet[min(cycle.now, max_cycle)]):
+            wins['dispatch_maptable_packet'].addstr(i+1, 1, line)
+        wins["dispatch_maptable_packet"].refresh()
+
+        return
 
     # initialization
     wins = {"main": stdscr}

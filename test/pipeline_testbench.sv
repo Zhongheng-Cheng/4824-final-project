@@ -329,17 +329,18 @@ module testbench;
                     dispatch_rs_packet[i].reg1_ready, dispatch_rs_packet[i].reg2_ready, dispatch_rs_packet[i].rd_mem, dispatch_rs_packet[i].wr_mem, dispatch_rs_packet[i].cond_branch, dispatch_rs_packet[i].uncond_branch, dispatch_rs_packet[i].halt, dispatch_rs_packet[i].illegal, dispatch_rs_packet[i].csr_op, dispatch_rs_packet[i].enable, dispatch_rs_packet[i].valid
                     );
 
-            $fdisplay(pipe_out, "dispatch_rob_packet:");
-                $fdisplay(pipe_out, "  | t_idx | told_idx | ar_idx | enable |   NPC    |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |  %2d   |    %2d    |   %2d   |   %b    | %x |", 
-                        i, dispatch_rob_packet[i].t_idx, dispatch_rob_packet[i].told_idx, dispatch_rob_packet[i].ar_idx, dispatch_rob_packet[i].enable, dispatch_rob_packet[i].NPC);
+            // $fdisplay(pipe_out, "dispatch_rob_packet:");
+            $fdisplay(pipe_out, " | t | to| ar|e|   NPC   ");
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%b| %x", 
+                    i, dispatch_rob_packet[i].t_idx, dispatch_rob_packet[i].told_idx, dispatch_rob_packet[i].ar_idx, dispatch_rob_packet[i].enable, dispatch_rob_packet[i].NPC);
             // $fdisplay(pipe_out, "");
             
-            $fdisplay(pipe_out, "dispatch_maptable_packet:");
-                $fdisplay(pipe_out, "  | pr_idx | ar_idx | enable |");
+            // $fdisplay(pipe_out, "dispatch_maptable_packet:");
+                // $fdisplay(pipe_out, "  | pr_idx | ar_idx | enable |");
+                $fdisplay(pipe_out, " | pr| ar|e");
                 for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |   %2d   |   %2d   |   %b    |", 
+                    $fdisplay(pipe_out, "%1d| %2d| %2d|%b", 
                         i, dispatch_maptable_packet[i].pr_idx, dispatch_maptable_packet[i].ar_idx, dispatch_maptable_packet[i].enable);
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");
