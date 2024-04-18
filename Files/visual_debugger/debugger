@@ -3,23 +3,26 @@
 import curses
 
 superscalar_ways = 3
-rob = []
-prf = []
-map_table = []
-rs = []
-proc2Imem_addr = []
-fetch_packet = []
-fetch_dispatch_packet = []
-dispatch_rs_packet = []
-dispatch_fetch_packet = []
-rob_dispatch_packet = []
-dispatch_rob_packet = []
-dispatch_maptable_packet = []
-rs_issue_packet = []
-issue_packet = []
-issue_fu_packet = []
-fu_packet = []
-fu_rs_packet = []
+data = {
+    "rob": [],
+    "prf": [],
+    "map_table": [],
+    "rs": [],
+    "proc2Imem_addr": [],
+    "fetch_packet": [],
+    "fetch_dispatch_packet": [],
+    "dispatch_rs_packet": [],
+    "dispatch_fetch_packet": [],
+    "rob_dispatch_packet": [],
+    "dispatch_rob_packet": [],
+    "dispatch_maptable_packet": [],
+    "rs_issue_packet": [],
+    "issue_packet": [],
+    "issue_fu_packet": [],
+    "fu_packet": [],
+    "fu_rs_packet": [],
+    "fu_prf_packet": []
+}
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -31,48 +34,34 @@ def read_pipeline_output(filepath):
             line = line.strip('\n')
             if line[:5] == "cycle":
                 cycle = int(line.split()[-1])
-                rob.append([])
-                prf.append([])
-                map_table.append([])
-                rs.append([])
-                fetch_packet.append([])
-                fetch_dispatch_packet.append([])
-                proc2Imem_addr.append([])
-                dispatch_rs_packet.append([])
-                rob_dispatch_packet.append([])
-                dispatch_fetch_packet.append([])
-                dispatch_rob_packet.append([])
-                dispatch_maptable_packet.append([])
-                rs_issue_packet.append([])
-                issue_packet.append([])
-                issue_fu_packet.append([])
-                fu_packet.append([])
-                fu_rs_packet.append([])
+                for i in data.values():
+                    i.append([])
             elif line == "ROB Table":
-                readnlines(fo, cycle, rob, 33)
+                readnlines(fo, cycle, data["rob"], 33)
             elif line == "Physical Register File":
-                readnlines(fo, cycle, prf, 33)
+                readnlines(fo, cycle, data["prf"], 33)
             elif line == "Maptable":
-                readnlines(fo, cycle, map_table, 32)
+                readnlines(fo, cycle, data["map_table"], 32)
             elif line == "RS Table":
-                readnlines(fo, cycle, rs, 34)
+                readnlines(fo, cycle, data["rs"], 34)
             elif line == "FETCH":
-                readnlines(fo, cycle, proc2Imem_addr, superscalar_ways)
-                readnlines(fo, cycle, fetch_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, fetch_dispatch_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, data["proc2Imem_addr"], superscalar_ways)
+                readnlines(fo, cycle, data['fetch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['fetch_dispatch_packet'], 1 + superscalar_ways)
             elif line == "DISPATCH":
-                readnlines(fo, cycle, rob_dispatch_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, dispatch_fetch_packet, 2)
-                readnlines(fo, cycle, dispatch_rs_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, dispatch_rob_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, dispatch_maptable_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, data['rob_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_fetch_packet'], 2)
+                readnlines(fo, cycle, data['dispatch_rs_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_rob_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_maptable_packet'], 1 + superscalar_ways)
             elif line == "ISSUE":
-                readnlines(fo, cycle, rs_issue_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, issue_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, issue_fu_packet, 1 + superscalar_ways)
+                readnlines(fo, cycle, data['rs_issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['issue_fu_packet'], 1 + superscalar_ways)
             elif line == "EXECUTE":
-                readnlines(fo, cycle, fu_packet, 1 + superscalar_ways)
-                readnlines(fo, cycle, fu_rs_packet, 6)
+                readnlines(fo, cycle, data['fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['fu_rs_packet'], 6)
+                readnlines(fo, cycle, data["fu_prf_packet"], 8)
 
 def readnlines(fo, cycle, lst, n):
     for _ in range(n):
@@ -125,6 +114,14 @@ def new_window(title, nlines, ncols, begin_y, begin_x):
 
 
 def main(stdscr):
+    def begin_y_line(n):
+        return (superscalar_ways + 3) * n
+    
+    def y_next_to(name):
+        return wins[name].getbegyx()[0] + wins[name].getmaxyx()[0]
+    
+    def x_next_to(name):
+        return wins[name].getbegyx()[1] + wins[name].getmaxyx()[1]
 
     def update_ui_main():
 
@@ -161,215 +158,69 @@ def main(stdscr):
 
     def update_ui_modules():
 
-        # create window for Reorder Buffer (RoB)
-        wins["rob"] = new_window(title="RoB", 
-                                 nlines=35, 
-                                 ncols=50, 
-                                 begin_y=0, 
-                                 begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                 )
-        for i, line in enumerate(rob[min(cycle.now, max_cycle)]):
-            wins['rob'].addstr(i+1, 1, line)
-        wins["rob"].refresh()
+        column0 = ["map_table"]
 
-        # create window for Physical Register File (PRF)
-        wins["prf"] = new_window(title="PRF", 
-                                 nlines=35, 
-                                 ncols=31, 
-                                 begin_y=0, 
-                                 begin_x=wins['rob'].getbegyx()[1] + wins['rob'].getmaxyx()[1]
-                                 )
-        for i, line in enumerate(prf[min(cycle.now, max_cycle)]):
-            wins['prf'].addstr(i+1, 1, line)
-        wins["prf"].refresh()
-
-        # create window for Reservation Stations (RS)
-        wins["rs"] = new_window(title="RS", 
-                                nlines=36, 
-                                ncols=64, 
-                                begin_y=0, 
-                                begin_x=wins['prf'].getbegyx()[1] + wins['prf'].getmaxyx()[1]
+        for table in column0:
+            wins[table] = new_window(title=table, 
+                                nlines=18, 
+                                ncols=15, 
+                                begin_y=14, 
+                                begin_x=0
                                 )
-        for i, line in enumerate(rs[min(cycle.now, max_cycle)]):
-            wins['rs'].addstr(i+1, 1, line)
-        wins["rs"].refresh()
+            for j in range(16):
+                wins[table].addstr(j + 1, 1, data[table][min(cycle.now, max_cycle)][j] + '|' + data[table][min(cycle.now, max_cycle)][j + 16])
+            wins[table].refresh()
 
-        # create window for Map Table
-        wins["map_table"] = new_window(title="Map Table", 
-                                    nlines=18, 
-                                    ncols=15, 
-                                    begin_y=14, 
-                                    begin_x=0
-                                    )
-        for i in range(16):
-            wins['map_table'].addstr(i + 1, 1, map_table[min(cycle.now, max_cycle)][i] + '|' + map_table[min(cycle.now, max_cycle)][i + 16])
-        wins["map_table"].refresh()
+        line0 = ["rob", "prf", "rs"]
+
+        for i, table in enumerate(line0):
+            wins[table] = new_window(title=table, 
+                                nlines=len(data[table][0]) + 2, 
+                                ncols=len(data[table][0][0]) + 2, 
+                                begin_y=0, 
+                                begin_x=x_next_to(line0[i - 1] if i > 0 else "keys")
+                                )
+            for j, line in enumerate(data[table][min(cycle.now, max_cycle)]):
+                wins[table].addstr(j+1, 1, line)
+            wins[table].refresh()
 
         return
     
 
-    def begin_y_line(n):
-        return (superscalar_ways + 3) * n
-    
-    def y_next_to(name):
-        return wins[name].getbegyx()[0] + wins[name].getmaxyx()[0]
-
     def update_ui_stages():
 
-        # column 0
+        column0 = ["proc2Imem_addr", "fu_rs_packet", "fu_prf_packet"]
+        lines = [
+            ["fetch_packet", "fetch_dispatch_packet", "rob_dispatch_packet", "dispatch_fetch_packet", "dispatch_rob_packet"],
+            ["dispatch_rs_packet", "dispatch_maptable_packet"],
+            ["rs_issue_packet", "issue_packet"],
+            ["issue_fu_packet"],
+            ["fu_packet"]
+        ]
 
-        # create window for proc2Imem_addr
-        wins["proc2Imem_addr"] = new_window(title="proc2Imem_addr", 
-                                   nlines=superscalar_ways + 2, 
-                                   ncols=15, 
-                                   begin_y=y_next_to("cycle"),
-                                   begin_x=0
-                                   )
-        for i, line in enumerate(proc2Imem_addr[min(cycle.now, max_cycle)]):
-            wins['proc2Imem_addr'].addstr(i+1, 1, line)
-        wins["proc2Imem_addr"].refresh()
+        for i, table in enumerate(column0):
+            wins[table] = new_window(title=table, 
+                                nlines=len(data[table][0]) + 2, 
+                                ncols=len(data[table][0][0]) + 2, 
+                                begin_y=y_next_to(column0[i - 1] if i > 0 else "cycle"), 
+                                begin_x=0
+                                )
+            for j, line in enumerate(data[table][min(cycle.now, max_cycle)]):
+                wins[table].addstr(j+1, 1, line)
+            wins[table].refresh()
 
-        # create window for fu_rs_packet
-        wins["fu_rs_packet"] = new_window(title="fu_rs_packet", 
-                                   nlines=8, 
-                                   ncols=15, 
-                                   begin_y=y_next_to("proc2Imem_addr"),
-                                   begin_x=0
-                                   )
-        for i, line in enumerate(fu_rs_packet[min(cycle.now, max_cycle)]):
-            wins['fu_rs_packet'].addstr(i+1, 1, line)
-        wins["fu_rs_packet"].refresh()
-
-        # line 0
-
-        # create window for fetch_packet
-        wins["fetch_packet"] = new_window(title="fetch_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(fetch_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(0), 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(fetch_packet[min(cycle.now, max_cycle)]):
-            wins['fetch_packet'].addstr(i+1, 1, line)
-        wins["fetch_packet"].refresh()
-
-        # create window for fetch_dispatch_packet
-        wins["fetch_dispatch_packet"] = new_window(title="fetch_dispatch_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(fetch_dispatch_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(0), 
-                                   begin_x=wins['fetch_packet'].getbegyx()[1] + wins['fetch_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(fetch_dispatch_packet[min(cycle.now, max_cycle)]):
-            wins['fetch_dispatch_packet'].addstr(i+1, 1, line)
-        wins["fetch_dispatch_packet"].refresh()
-
-        # create window for dispatch_rs_packet
-        wins["rob_dispatch_packet"] = new_window(title="rob_dispatch", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(rob_dispatch_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(0), 
-                                   begin_x=wins['fetch_dispatch_packet'].getbegyx()[1] + wins['fetch_dispatch_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(rob_dispatch_packet[min(cycle.now, max_cycle)]):
-            wins['rob_dispatch_packet'].addstr(i+1, 1, line)
-        wins["rob_dispatch_packet"].refresh()
-
-        # create window for dispatch_fetch_packet
-        wins["dispatch_fetch_packet"] = new_window(title="dispatch_fetch", 
-                                   nlines=4, 
-                                   ncols=len(dispatch_fetch_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(0), 
-                                   begin_x=wins['rob_dispatch_packet'].getbegyx()[1] + wins['rob_dispatch_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(dispatch_fetch_packet[min(cycle.now, max_cycle)]):
-            wins['dispatch_fetch_packet'].addstr(i+1, 1, line)
-        wins["dispatch_fetch_packet"].refresh()
-
-        # create window for dispatch_rob_packet
-        wins["dispatch_rob_packet"] = new_window(title="dispatch_rob_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(dispatch_rob_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(0), 
-                                   begin_x=wins['dispatch_fetch_packet'].getbegyx()[1] + wins['dispatch_fetch_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(dispatch_rob_packet[min(cycle.now, max_cycle)]):
-            wins['dispatch_rob_packet'].addstr(i+1, 1, line)
-        wins["dispatch_rob_packet"].refresh()
-
-        # line 1
-        
-        # create window for dispatch_rs_packet
-        wins["dispatch_rs_packet"] = new_window(title="dispatch_rs_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(dispatch_rs_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(1), 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(dispatch_rs_packet[min(cycle.now, max_cycle)]):
-            wins['dispatch_rs_packet'].addstr(i+1, 1, line)
-        wins["dispatch_rs_packet"].refresh()
-
-        # create window for dispatch_maptable_packet
-        wins["dispatch_maptable_packet"] = new_window(title="dispatch_map", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(dispatch_maptable_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(1), 
-                                   begin_x=wins['dispatch_rs_packet'].getbegyx()[1] + wins['dispatch_rs_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(dispatch_maptable_packet[min(cycle.now, max_cycle)]):
-            wins['dispatch_maptable_packet'].addstr(i+1, 1, line)
-        wins["dispatch_maptable_packet"].refresh()
-
-        # line 2
-
-        # create window for rs_issue_packet
-        wins["rs_issue_packet"] = new_window(title="rs_issue_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(rs_issue_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(2), 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(rs_issue_packet[min(cycle.now, max_cycle)]):
-            wins['rs_issue_packet'].addstr(i+1, 1, line)
-        wins["rs_issue_packet"].refresh()
-
-        # create window for issue_packet
-        wins["issue_packet"] = new_window(title="issue_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(issue_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(2), 
-                                   begin_x=wins['rs_issue_packet'].getbegyx()[1] + wins['rs_issue_packet'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(issue_packet[min(cycle.now, max_cycle)]):
-            wins['issue_packet'].addstr(i+1, 1, line)
-        wins["issue_packet"].refresh()
-
-        # line 3
-
-        # create window for issue_fu_packet
-        wins["issue_fu_packet"] = new_window(title="issue_fu_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(issue_fu_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(3), 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(issue_fu_packet[min(cycle.now, max_cycle)]):
-            wins['issue_fu_packet'].addstr(i+1, 1, line)
-        wins["issue_fu_packet"].refresh()
-
-        # line 4
-
-        # create window for fu_packet
-        wins["fu_packet"] = new_window(title="fu_packet", 
-                                   nlines=superscalar_ways + 3, 
-                                   ncols=len(fu_packet[0][0]) + 2, 
-                                   begin_y=begin_y_line(4), 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(fu_packet[min(cycle.now, max_cycle)]):
-            wins['fu_packet'].addstr(i+1, 1, line)
-        wins["fu_packet"].refresh()
+        for line_i in range(len(lines)):
+            for i, table in enumerate(lines[line_i]):
+                ncols = len(data[table][0][0]) + 2
+                wins[table] = new_window(title=table[:ncols], 
+                                    nlines=len(data[table][0]) + 2, 
+                                    ncols=ncols, 
+                                    begin_y=begin_y_line(line_i), 
+                                    begin_x=x_next_to(lines[line_i][i - 1] if i > 0 else "keys")
+                                    )
+                for j, row in enumerate(data[table][min(cycle.now, max_cycle)]):
+                    wins[table].addstr(j+1, 1, row)
+                wins[table].refresh()
 
         return
 

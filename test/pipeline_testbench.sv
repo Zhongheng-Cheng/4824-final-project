@@ -388,18 +388,18 @@ module testbench;
             // $fdisplay(pipe_out, "");
 
             // fu_rs_packet
-            $fdisplay(pipe_out, "   alu_1: %b", fu_rs_packet.alu_1);
-            $fdisplay(pipe_out, "   alu_2: %b", fu_rs_packet.alu_2);
-            $fdisplay(pipe_out, "   alu_3: %b", fu_rs_packet.alu_3);
-            $fdisplay(pipe_out, "  mult_1: %b", fu_rs_packet.mult_1);
-            $fdisplay(pipe_out, "  mult_2: %b", fu_rs_packet.mult_2);
-            $fdisplay(pipe_out, "branch_1: %b", fu_rs_packet.branch_1);
+            $fdisplay(pipe_out, "    alu_1: %b ", fu_rs_packet.alu_1);
+            $fdisplay(pipe_out, "    alu_2: %b ", fu_rs_packet.alu_2);
+            $fdisplay(pipe_out, "    alu_3: %b ", fu_rs_packet.alu_3);
+            $fdisplay(pipe_out, "   mult_1: %b ", fu_rs_packet.mult_1);
+            $fdisplay(pipe_out, "   mult_2: %b ", fu_rs_packet.mult_2);
+            $fdisplay(pipe_out, " branch_1: %b ", fu_rs_packet.branch_1);
 
-            $fdisplay(pipe_out,"fu_prf_packet:" );
-                $fdisplay(pipe_out, "  | idx |   value    |");
-                for (int i = 0; i < 7; i++) 
-                    $fdisplay(pipe_out,"%1d | %2d  | %d |",
-                        i,  fu_prf_packet[i].idx, fu_prf_packet[i].value);
+            // fu_prf_packet
+            $fdisplay(pipe_out, "id|  value   ");
+            for (int i = 0; i < 7; i++) 
+                $fdisplay(pipe_out,"%2d|%d",
+                    fu_prf_packet[i].idx, fu_prf_packet[i].value);
         //     $fdisplay(pipe_out, "");
         // $fdisplay(pipe_out, "");
 
