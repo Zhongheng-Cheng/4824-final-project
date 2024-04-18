@@ -15,6 +15,7 @@ dispatch_fetch_packet = []
 rob_dispatch_packet = []
 dispatch_rob_packet = []
 dispatch_maptable_packet = []
+rs_issue_packet = []
 
 def read_pipeline_output(filepath):
     with open(filepath, 'r') as fo:
@@ -38,6 +39,7 @@ def read_pipeline_output(filepath):
                 dispatch_fetch_packet.append([])
                 dispatch_rob_packet.append([])
                 dispatch_maptable_packet.append([])
+                rs_issue_packet.append([])
             elif line == "ROB Table":
                 readnlines(fo, cycle, rob, 33)
             elif line == "Physical Register File":
@@ -56,6 +58,8 @@ def read_pipeline_output(filepath):
                 readnlines(fo, cycle, dispatch_rs_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, dispatch_rob_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, dispatch_maptable_packet, 1 + superscalar_ways)
+            elif line == "ISSUE":
+                readnlines(fo, cycle, rs_issue_packet, 1 + superscalar_ways)
 
 def readnlines(fo, cycle, lst, n):
     for _ in range(n):
@@ -280,6 +284,18 @@ def main(stdscr):
         for i, line in enumerate(dispatch_maptable_packet[min(cycle.now, max_cycle)]):
             wins['dispatch_maptable_packet'].addstr(i+1, 1, line)
         wins["dispatch_maptable_packet"].refresh()
+
+        rs_issue_packet
+        # create window for rs_issue_packet
+        wins["rs_issue_packet"] = new_window(title="rs_issue_packet", 
+                                   nlines=6, 
+                                   ncols=55, 
+                                   begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
+                                   begin_x=wins['dispatch_maptable_packet'].getbegyx()[1] + wins['dispatch_maptable_packet'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(rs_issue_packet[min(cycle.now, max_cycle)]):
+            wins['rs_issue_packet'].addstr(i+1, 1, line)
+        wins["rs_issue_packet"].refresh()
 
         return
 
