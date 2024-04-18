@@ -289,7 +289,6 @@ module testbench;
                 end
 
         $fdisplay(pipe_out, "FETCH");
-            $fdisplay(pipe_out, "");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
                 $fdisplay(pipe_out, "%1d| %10d", 
                     i, proc2Imem_addr[i]);

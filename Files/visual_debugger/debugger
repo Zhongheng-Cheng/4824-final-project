@@ -53,7 +53,7 @@ def read_pipeline_output(filepath):
             elif line == "RS Table":
                 readnlines(fo, cycle, rs, 34)
             elif line == "FETCH":
-                readnlines(fo, cycle, proc2Imem_addr, 1 + superscalar_ways)
+                readnlines(fo, cycle, proc2Imem_addr, superscalar_ways)
                 readnlines(fo, cycle, fetch_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, fetch_dispatch_packet, 1 + superscalar_ways)
             elif line == "DISPATCH":
@@ -201,25 +201,32 @@ def main(stdscr):
         return
     
 
+    def begin_y_line(n):
+        return (superscalar_ways + 3) * n
+
     def update_ui_stages():
 
-        # create window for Fetch
+        # column 0
+
+        # create window for proc2Imem_addr
         wins["proc2Imem_addr"] = new_window(title="proc2Imem_addr", 
-                                   nlines=6, 
+                                   nlines=5, 
                                    ncols=15, 
-                                   begin_y=0, 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
+                                   begin_y=wins['cycle'].getbegyx()[0] + wins['cycle'].getmaxyx()[0],
+                                   begin_x=0
                                    )
         for i, line in enumerate(proc2Imem_addr[min(cycle.now, max_cycle)]):
             wins['proc2Imem_addr'].addstr(i+1, 1, line)
         wins["proc2Imem_addr"].refresh()
 
+        # line 0
+
         # create window for fetch_packet
         wins["fetch_packet"] = new_window(title="fetch_packet", 
                                    nlines=6, 
                                    ncols=39, 
-                                   begin_y=0, 
-                                   begin_x=wins['proc2Imem_addr'].getbegyx()[1] + wins['proc2Imem_addr'].getmaxyx()[1]
+                                   begin_y=begin_y_line(0), 
+                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
         for i, line in enumerate(fetch_packet[min(cycle.now, max_cycle)]):
             wins['fetch_packet'].addstr(i+1, 1, line)
@@ -229,7 +236,7 @@ def main(stdscr):
         wins["fetch_dispatch_packet"] = new_window(title="fetch_dispatch_packet", 
                                    nlines=6, 
                                    ncols=39, 
-                                   begin_y=0, 
+                                   begin_y=begin_y_line(0), 
                                    begin_x=wins['fetch_packet'].getbegyx()[1] + wins['fetch_packet'].getmaxyx()[1]
                                    )
         for i, line in enumerate(fetch_dispatch_packet[min(cycle.now, max_cycle)]):
@@ -240,7 +247,7 @@ def main(stdscr):
         wins["rob_dispatch_packet"] = new_window(title="rob_dispatch", 
                                    nlines=6, 
                                    ncols=13, 
-                                   begin_y=0, 
+                                   begin_y=begin_y_line(0), 
                                    begin_x=wins['fetch_dispatch_packet'].getbegyx()[1] + wins['fetch_dispatch_packet'].getmaxyx()[1]
                                    )
         for i, line in enumerate(rob_dispatch_packet[min(cycle.now, max_cycle)]):
@@ -251,51 +258,55 @@ def main(stdscr):
         wins["dispatch_fetch_packet"] = new_window(title="dispatch_fetch", 
                                    nlines=4, 
                                    ncols=21, 
-                                   begin_y=0, 
+                                   begin_y=begin_y_line(0), 
                                    begin_x=wins['rob_dispatch_packet'].getbegyx()[1] + wins['rob_dispatch_packet'].getmaxyx()[1]
                                    )
         for i, line in enumerate(dispatch_fetch_packet[min(cycle.now, max_cycle)]):
             wins['dispatch_fetch_packet'].addstr(i+1, 1, line)
         wins["dispatch_fetch_packet"].refresh()
+
+        # create window for dispatch_rob_packet
+        wins["dispatch_rob_packet"] = new_window(title="dispatch_rob_packet", 
+                                   nlines=6, 
+                                   ncols=27, 
+                                   begin_y=begin_y_line(0), 
+                                   begin_x=wins['dispatch_fetch_packet'].getbegyx()[1] + wins['dispatch_fetch_packet'].getmaxyx()[1]
+                                   )
+        for i, line in enumerate(dispatch_rob_packet[min(cycle.now, max_cycle)]):
+            wins['dispatch_rob_packet'].addstr(i+1, 1, line)
+        wins["dispatch_rob_packet"].refresh()
+
+        # line 1
         
         # create window for dispatch_rs_packet
         wins["dispatch_rs_packet"] = new_window(title="dispatch_rs_packet", 
                                    nlines=6, 
                                    ncols=126, 
-                                   begin_y=wins['fetch_packet'].getbegyx()[0] + wins['fetch_packet'].getmaxyx()[0], 
+                                   begin_y=begin_y_line(1), 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
         for i, line in enumerate(dispatch_rs_packet[min(cycle.now, max_cycle)]):
             wins['dispatch_rs_packet'].addstr(i+1, 1, line)
         wins["dispatch_rs_packet"].refresh()
 
-        # create window for dispatch_rob_packet
-        wins["dispatch_rob_packet"] = new_window(title="dispatch_rob_packet", 
-                                   nlines=6, 
-                                   ncols=27, 
-                                   begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
-                                   begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
-                                   )
-        for i, line in enumerate(dispatch_rob_packet[min(cycle.now, max_cycle)]):
-            wins['dispatch_rob_packet'].addstr(i+1, 1, line)
-        wins["dispatch_rob_packet"].refresh()
-
         # create window for dispatch_maptable_packet
         wins["dispatch_maptable_packet"] = new_window(title="dispatch_map", 
                                    nlines=6, 
                                    ncols=13, 
-                                   begin_y=wins['dispatch_rs_packet'].getbegyx()[0] + wins['dispatch_rs_packet'].getmaxyx()[0], 
-                                   begin_x=wins['dispatch_rob_packet'].getbegyx()[1] + wins['dispatch_rob_packet'].getmaxyx()[1]
+                                   begin_y=begin_y_line(1), 
+                                   begin_x=wins['dispatch_rs_packet'].getbegyx()[1] + wins['dispatch_rs_packet'].getmaxyx()[1]
                                    )
         for i, line in enumerate(dispatch_maptable_packet[min(cycle.now, max_cycle)]):
             wins['dispatch_maptable_packet'].addstr(i+1, 1, line)
         wins["dispatch_maptable_packet"].refresh()
 
+        # line 2
+
         # create window for rs_issue_packet
         wins["rs_issue_packet"] = new_window(title="rs_issue_packet", 
                                    nlines=6, 
                                    ncols=len(rs_issue_packet[0][0]) + 2, 
-                                   begin_y=wins['dispatch_maptable_packet'].getbegyx()[0] + wins['dispatch_maptable_packet'].getmaxyx()[0], 
+                                   begin_y=begin_y_line(2), 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
         for i, line in enumerate(rs_issue_packet[min(cycle.now, max_cycle)]):
@@ -306,18 +317,20 @@ def main(stdscr):
         wins["issue_packet"] = new_window(title="issue_packet", 
                                    nlines=6, 
                                    ncols=len(issue_packet[0][0]) + 2, 
-                                   begin_y=wins['dispatch_maptable_packet'].getbegyx()[0] + wins['dispatch_maptable_packet'].getmaxyx()[0], 
+                                   begin_y=begin_y_line(2), 
                                    begin_x=wins['rs_issue_packet'].getbegyx()[1] + wins['rs_issue_packet'].getmaxyx()[1]
                                    )
         for i, line in enumerate(issue_packet[min(cycle.now, max_cycle)]):
             wins['issue_packet'].addstr(i+1, 1, line)
         wins["issue_packet"].refresh()
 
+        # line 3
+
         # create window for issue_fu_packet
         wins["issue_fu_packet"] = new_window(title="issue_fu_packet", 
                                    nlines=6, 
                                    ncols=len(issue_fu_packet[0][0]) + 2, 
-                                   begin_y=wins['rs_issue_packet'].getbegyx()[0] + wins['rs_issue_packet'].getmaxyx()[0], 
+                                   begin_y=begin_y_line(3), 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
         for i, line in enumerate(issue_fu_packet[min(cycle.now, max_cycle)]):
