@@ -17,7 +17,7 @@ def read_pipeline_output(filepath):
         while True:
             line = fo.readline()
             if not line:
-                return len(rob) # total number of lines
+                return cycle # total number of cycles
             
             line = line.strip('\n')
             if line[:5] == "cycle":
@@ -137,7 +137,7 @@ def main(stdscr):
                                  )
         wins['rob'].addstr(1, 1, "  | t | to| ar|c|h|p|tar_pc|  dest_val |   NPC  ")
         for i in range(32):
-            wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, len(rob) - 1)][i])
+            wins['rob'].addstr(i + 2, 1, rob[min(cycle.now, max_cycle)][i])
         wins["rob"].refresh()
 
         # create window for Physical Register File (PRF)
@@ -149,7 +149,7 @@ def main(stdscr):
                                  )
         wins['prf'].addstr(1, 1, "  |   value   |  |   value   ")
         for i in range(32):
-            wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle - 1)][i] + '|' + prf[min(cycle.now, max_cycle - 1)][i + 32])
+            wins['prf'].addstr(i + 2, 1, prf[min(cycle.now, max_cycle)][i] + '|' + prf[min(cycle.now, max_cycle)][i + 32])
         wins["prf"].refresh()
 
         # create window for Reservation Stations (RS)
@@ -161,21 +161,11 @@ def main(stdscr):
                                 )
         wins['rs'].addstr(1, 1, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst |alu|mul")
         for i in range(16):
-            wins['rs'].addstr(i + 2, 1, rs[min(cycle.now, max_cycle - 1)][i])
+            wins['rs'].addstr(i + 2, 1, rs[min(cycle.now, max_cycle)][i])
         wins['rs'].addstr(18, 1, "  |asl|bsl|fusl|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld")
         for i in range(16):
-            wins['rs'].addstr(i + 19, 1, rs[min(cycle.now, max_cycle - 1)][i + 16])
+            wins['rs'].addstr(i + 19, 1, rs[min(cycle.now, max_cycle)][i + 16])
         wins["rs"].refresh()
-
-        # # create window for Arch Table
-        # wins["arch_table"] = new_window(title="Arch Table", 
-        #                                 nlines=10, 
-        #                                 ncols=10, 
-        #                                 begin_y=0, 
-        #                                 begin_x=wins['map_table'].getbegyx()[1] + wins['map_table'].getmaxyx()[1]
-        #                                 )
-        # wins['arch_table'].addstr(1, 1, "Reg|T+  ")
-        # wins["arch_table"].refresh()
 
         # create window for Map Table
         wins["map_table"] = new_window(title="Map Table", 
@@ -185,31 +175,8 @@ def main(stdscr):
                                     begin_x=0
                                     )
         for i in range(16):
-            wins['map_table'].addstr(i + 1, 1, map_table[min(cycle.now, max_cycle - 1)][i] + '|' + map_table[min(cycle.now, max_cycle - 1)][i + 16])
+            wins['map_table'].addstr(i + 1, 1, map_table[min(cycle.now, max_cycle)][i] + '|' + map_table[min(cycle.now, max_cycle)][i + 16])
         wins["map_table"].refresh()
-
-        # # create window for Free List
-        # wins["free_list"] = new_window(title="Free List", 
-        #                             nlines=10, 
-        #                             ncols=15, 
-        #                             begin_y=10, 
-        #                             begin_x=wins['rs'].getbegyx()[1] + wins['rs'].getmaxyx()[1]
-        #                             )
-        # wins['free_list'].addstr(1, 1, "")
-        # wins["free_list"].refresh()
-
-        # # create window for Common Data Bus (CDB)
-        # wins["cdb"] = new_window(title="CDB", 
-        #                         nlines=5, 
-        #                         ncols=8, 
-        #                         begin_y=10, 
-        #                         begin_x=wins['free_list'].getbegyx()[1] + wins['free_list'].getmaxyx()[1]
-        #                         )
-        # wins['cdb'].addstr(1, 1, "T  ")
-        # wins["cdb"].refresh()
-
-        # wins["main"].addstr(20, 1, f"Key pressed: {str(key_press):3s}")
-        # wins["main"].addstr(21, 1, f"Window size: {height:3d} x {width:3d}")
 
         return
     
@@ -224,7 +191,7 @@ def main(stdscr):
         wins['fetch'].addstr(1, 1, " |p2Imem_addr|           fetch_packet          |      fetch_dispatch_packet      ")
         wins['fetch'].addstr(2, 1, " |           |    inst   |   NPC   |    PC   |v|    inst   |   NPC   |    PC   |v")
         for i in range(superscalar_ways):
-            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, max_cycle - 1)][i])
+            wins['fetch'].addstr(i + 3, 1, fetch[min(cycle.now, max_cycle)][i])
         wins["fetch"].refresh()
 
         # create window for dispatch_rs_packet
@@ -236,7 +203,7 @@ def main(stdscr):
                                    )
         wins['rob_dispatch_packet'].addstr(1, 1, " |stall|new")
         for i in range(superscalar_ways):
-            wins['rob_dispatch_packet'].addstr(i + 2, 1, rob_dispatch_packet[min(cycle.now, max_cycle - 1)][i])
+            wins['rob_dispatch_packet'].addstr(i + 2, 1, rob_dispatch_packet[min(cycle.now, max_cycle)][i])
         wins["rob_dispatch_packet"].refresh()
 
         # create window for dispatch_fetch_packet
@@ -247,7 +214,7 @@ def main(stdscr):
                                    begin_x=wins['rob_dispatch_packet'].getbegyx()[1] + wins['rob_dispatch_packet'].getmaxyx()[1]
                                    )
         for i in range(2):
-            wins['dispatch_fetch_packet'].addstr(i + 1, 1, dispatch_fetch_packet[min(cycle.now, max_cycle - 1)][i])
+            wins['dispatch_fetch_packet'].addstr(i + 1, 1, dispatch_fetch_packet[min(cycle.now, max_cycle)][i])
         wins["dispatch_fetch_packet"].refresh()
         
         # create window for dispatch_rs_packet
@@ -259,7 +226,7 @@ def main(stdscr):
                                    )
         wins['dispatch_rs_packet'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
         for i in range(superscalar_ways):
-            wins['dispatch_rs_packet'].addstr(i + 2, 1, dispatch_rs_packet[min(cycle.now, max_cycle - 1)][i])
+            wins['dispatch_rs_packet'].addstr(i + 2, 1, dispatch_rs_packet[min(cycle.now, max_cycle)][i])
         wins["dispatch_rs_packet"].refresh()
     
 
