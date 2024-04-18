@@ -376,27 +376,15 @@ module testbench;
                     issue_fu_packet[i].opa_select, issue_fu_packet[i].opb_select, issue_fu_packet[i].fu_select, issue_fu_packet[i].op_sel, issue_fu_packet[i].alu_func, issue_fu_packet[i].mult_func,
                     issue_fu_packet[i].rd_mem, issue_fu_packet[i].wr_mem, issue_fu_packet[i].cond_branch, issue_fu_packet[i].uncond_branch, issue_fu_packet[i].halt, issue_fu_packet[i].illegal, issue_fu_packet[i].csr_op, issue_fu_packet[i].valid
                     );
-                
-                // $fdisplay(pipe_out, "  | opa_select | opb_select | fu_select | op_sel | alu_func | mult_func |");
-                // for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                //     $fdisplay(pipe_out, "%1d |     %d      |     %d     |     %d     |   %d    |    %d    |    %d     |", 
-                //         i, issue_fu_packet[i].opa_select, issue_fu_packet[i].opb_select, issue_fu_packet[i].fu_select, issue_fu_packet[i].op_sel, issue_fu_packet[i].alu_func, issue_fu_packet[i].mult_func);
-                
-                // $fdisplay(pipe_out, "  | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid |");
-                // for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                //     $fdisplay(pipe_out, "%1d |   %b    |   %b    |      %b      |       %b       |  %b   |    %b    |   %b    |   %b   |", 
-                //         i, issue_fu_packet[i].rd_mem, issue_fu_packet[i].wr_mem, issue_fu_packet[i].cond_branch, issue_fu_packet[i].uncond_branch, issue_fu_packet[i].halt, issue_fu_packet[i].illegal, issue_fu_packet[i].csr_op, issue_fu_packet[i].valid);
-        //     $fdisplay(pipe_out, "");
-        // $fdisplay(pipe_out, "");
 
-        $fdisplay(pipe_out, "-------------EXECUTE-------------");
-            // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "fu_packet:");
-                $fdisplay(pipe_out, "  | pr_idx | ar_idx | rob_idx | target_pc  | dest_value | rd_mem | wr_mem | halt | take_branch | valid |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |   %2d   |   %2d   |   %2d    | %d | %d |   %b    |   %b    |  %b   |      %b      |   %b   |",
-                        i, fu_packet[i].pr_idx, fu_packet[i].ar_idx, fu_packet[i].rob_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch, fu_packet[i].valid);
+        $fdisplay(pipe_out, "EXECUTE");
+
+            // fu_packet
+            $fdisplay(pipe_out, " | pr|rob| ar| target_pc|dest_value|rdm|wrm|halt|tkb|vld");
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%d|%d| %b | %b |  %b | %b | %b ",
+                    i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch, fu_packet[i].valid);
             // $fdisplay(pipe_out, "");
 
             $fdisplay(pipe_out, "fu_rs_packet: | alu_1: %b | alu_2: %b | alu_3: %b | mult_1: %b | mult_2: %b | branch_1: %b |", 
