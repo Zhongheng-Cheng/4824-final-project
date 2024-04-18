@@ -31,38 +31,25 @@ def read_pipeline_output(filepath):
                 rob_dispatch_packet.append([])
                 dispatch_fetch_packet.append([])
             elif line == "ROB Table":
-                for _ in range(32):
-                    line = fo.readline().strip('\n')
-                    rob[cycle].append(line)
+                readnlines(fo, cycle, rob, 32)
             elif line == "Physical Register File":
-                for _ in range(64):
-                    line = fo.readline().strip('\n')
-                    prf[cycle].append(line)
+                readnlines(fo, cycle, prf, 64)
             elif line == "Maptable":
-                for _ in range(32):
-                    line = fo.readline().strip('\n')
-                    map_table[cycle].append(line)
+                readnlines(fo, cycle, map_table, 32)
             elif line == "RS Table":
-                for _ in range(16):
-                    line = fo.readline().strip('\n')
-                    rs[cycle].append(line)
-                for _ in range(16):
-                    line = fo.readline().strip('\n')
-                    rs[cycle].append(line)
+                readnlines(fo, cycle, rs, 32)
             elif line == "FETCH":
-                for _ in range(superscalar_ways):
-                    line = fo.readline().strip('\n')
-                    fetch[cycle].append(line)
+                readnlines(fo, cycle, fetch, superscalar_ways)
             elif line == "DISPATCH":
-                for _ in range(superscalar_ways): # dispatch_rs_packet
-                    line = fo.readline().strip('\n')
-                    rob_dispatch_packet[cycle].append(line)
-                for _ in range(2): # dispatch_fetch_packet
-                    line = fo.readline().strip('\n')
-                    dispatch_fetch_packet[cycle].append(line)
-                for _ in range(superscalar_ways): # dispatch_rs_packet
-                    line = fo.readline().strip('\n')
-                    dispatch_rs_packet[cycle].append(line)
+                readnlines(fo, cycle, rob_dispatch_packet, superscalar_ways)
+                readnlines(fo, cycle, dispatch_fetch_packet, 2)
+                readnlines(fo, cycle, dispatch_rs_packet, superscalar_ways)
+
+def readnlines(fo, cycle, lst, n):
+    for _ in range(n):
+        line = fo.readline().strip('\n')
+        lst[cycle].append(line)
+    return
 
 class Cycle():
     def __init__(self):
