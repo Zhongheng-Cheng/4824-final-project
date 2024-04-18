@@ -387,9 +387,13 @@ module testbench;
                     i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch, fu_packet[i].valid);
             // $fdisplay(pipe_out, "");
 
-            $fdisplay(pipe_out, "fu_rs_packet: | alu_1: %b | alu_2: %b | alu_3: %b | mult_1: %b | mult_2: %b | branch_1: %b |", 
-                fu_rs_packet.alu_1, fu_rs_packet.alu_2, fu_rs_packet.alu_3, fu_rs_packet.mult_1, fu_rs_packet.mult_2, fu_rs_packet.branch_1 );
-            // $fdisplay(pipe_out, "");
+            // fu_rs_packet
+            $fdisplay(pipe_out, "   alu_1: %b", fu_rs_packet.alu_1);
+            $fdisplay(pipe_out, "   alu_2: %b", fu_rs_packet.alu_2);
+            $fdisplay(pipe_out, "   alu_3: %b", fu_rs_packet.alu_3);
+            $fdisplay(pipe_out, "  mult_1: %b", fu_rs_packet.mult_1);
+            $fdisplay(pipe_out, "  mult_2: %b", fu_rs_packet.mult_2);
+            $fdisplay(pipe_out, "branch_1: %b", fu_rs_packet.branch_1);
 
             $fdisplay(pipe_out,"fu_prf_packet:" );
                 $fdisplay(pipe_out, "  | idx |   value    |");
