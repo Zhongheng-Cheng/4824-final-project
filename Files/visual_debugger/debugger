@@ -60,17 +60,17 @@ class Cycle():
     def add_to_cycle(self, num):
         self.now += num
         if self.now < self.limit[0]:
-            self.now = 0
+            self.now = self.limit[0]
         elif self.now > self.limit[1]:
-            self.now = 999
+            self.now = self.limit[1]
         return
 
     def move_to_cycle(self, num):
         self.now = num
         if self.now < self.limit[0]:
-            self.now = 0
+            self.now = self.limit[0]
         elif self.now > self.limit[1]:
-            self.now = 999
+            self.now = self.limit[1]
         return
 
 class Page():
