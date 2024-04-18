@@ -47,9 +47,9 @@ def read_pipeline_output(filepath):
                 readnlines(fo, cycle, fetch_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, fetch_dispatch_packet, 1 + superscalar_ways)
             elif line == "DISPATCH":
-                readnlines(fo, cycle, rob_dispatch_packet, superscalar_ways)
+                readnlines(fo, cycle, rob_dispatch_packet, 1 + superscalar_ways)
                 readnlines(fo, cycle, dispatch_fetch_packet, 2)
-                readnlines(fo, cycle, dispatch_rs_packet, superscalar_ways)
+                readnlines(fo, cycle, dispatch_rs_packet, 1 + superscalar_ways)
 
 def readnlines(fo, cycle, lst, n):
     for _ in range(n):
@@ -227,9 +227,8 @@ def main(stdscr):
                                    begin_y=0, 
                                    begin_x=wins['fetch_dispatch_packet'].getbegyx()[1] + wins['fetch_dispatch_packet'].getmaxyx()[1]
                                    )
-        wins['rob_dispatch_packet'].addstr(1, 1, " |stall|new")
-        for i in range(superscalar_ways):
-            wins['rob_dispatch_packet'].addstr(i + 2, 1, rob_dispatch_packet[min(cycle.now, max_cycle)][i])
+        for i, line in enumerate(rob_dispatch_packet[min(cycle.now, max_cycle)]):
+            wins['rob_dispatch_packet'].addstr(i+1, 1, line)
         wins["rob_dispatch_packet"].refresh()
 
         # create window for dispatch_fetch_packet
@@ -239,8 +238,8 @@ def main(stdscr):
                                    begin_y=0, 
                                    begin_x=wins['rob_dispatch_packet'].getbegyx()[1] + wins['rob_dispatch_packet'].getmaxyx()[1]
                                    )
-        for i in range(2):
-            wins['dispatch_fetch_packet'].addstr(i + 1, 1, dispatch_fetch_packet[min(cycle.now, max_cycle)][i])
+        for i, line in enumerate(dispatch_fetch_packet[min(cycle.now, max_cycle)]):
+            wins['dispatch_fetch_packet'].addstr(i+1, 1, line)
         wins["dispatch_fetch_packet"].refresh()
         
         # create window for dispatch_rs_packet
@@ -250,9 +249,8 @@ def main(stdscr):
                                    begin_y=wins['fetch_packet'].getbegyx()[0] + wins['fetch_packet'].getmaxyx()[0], 
                                    begin_x=wins['keys'].getbegyx()[1] + wins['keys'].getmaxyx()[1]
                                    )
-        wins['dispatch_rs_packet'].addstr(1, 1, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld")
-        for i in range(superscalar_ways):
-            wins['dispatch_rs_packet'].addstr(i + 2, 1, dispatch_rs_packet[min(cycle.now, max_cycle)][i])
+        for i, line in enumerate(dispatch_rs_packet[min(cycle.now, max_cycle)]):
+            wins['dispatch_rs_packet'].addstr(i+1, 1, line)
         wins["dispatch_rs_packet"].refresh()
     
 

@@ -304,11 +304,12 @@ module testbench;
                     i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
 
         $fdisplay(pipe_out, "DISPATCH");
+            $fdisplay(pipe_out, " |stall|new");
             // $fdisplay(pipe_out, "rob_dispatch_packet:");
                 // $fdisplay(pipe_out, "  | stall | new_entry_idx |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d|  %b  | %2d", 
-                        i, rob_dispatch_packet.stall[i], rob_dispatch_packet.new_entry_idx[i]);
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d|  %b  | %2d", 
+                    i, rob_dispatch_packet.stall[i], rob_dispatch_packet.new_entry_idx[i]);
 
             // $fdisplay(pipe_out, "dispatch_fetch_packet",
             $fdisplay(pipe_out, "first_stall_idx: %2d", 
@@ -319,13 +320,14 @@ module testbench;
             // $fdisplay(pipe_out, "dispatch_rs_packet:");
                 // $fdisplay(pipe_out, "  |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
                 // $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   ");
-                for (int i = 0; i < `SUPERSCALAR_WAYS ; i++)
-                    $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %1d | %1d |  %d |  %d | %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
-                        i, 
-                        dispatch_rs_packet[i].NPC, dispatch_rs_packet[i].PC, dispatch_rs_packet[i].reg1_pr_idx, dispatch_rs_packet[i].reg2_pr_idx, dispatch_rs_packet[i].pr_idx, dispatch_rs_packet[i].rob_idx, dispatch_rs_packet[i].ar_idx, dispatch_rs_packet[i].inst,
-                        dispatch_rs_packet[i].opa_select, dispatch_rs_packet[i].opb_select, dispatch_rs_packet[i].fu_sel, dispatch_rs_packet[i].op_sel, dispatch_rs_packet[i].alu_func, dispatch_rs_packet[i].mult_func,
-                        dispatch_rs_packet[i].reg1_ready, dispatch_rs_packet[i].reg2_ready, dispatch_rs_packet[i].rd_mem, dispatch_rs_packet[i].wr_mem, dispatch_rs_packet[i].cond_branch, dispatch_rs_packet[i].uncond_branch, dispatch_rs_packet[i].halt, dispatch_rs_packet[i].illegal, dispatch_rs_packet[i].csr_op, dispatch_rs_packet[i].enable, dispatch_rs_packet[i].valid
-                        );
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld");
+            for (int i = 0; i < `SUPERSCALAR_WAYS ; i++)
+                $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %1d | %1d |  %d |  %d | %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
+                    i, 
+                    dispatch_rs_packet[i].NPC, dispatch_rs_packet[i].PC, dispatch_rs_packet[i].reg1_pr_idx, dispatch_rs_packet[i].reg2_pr_idx, dispatch_rs_packet[i].pr_idx, dispatch_rs_packet[i].rob_idx, dispatch_rs_packet[i].ar_idx, dispatch_rs_packet[i].inst,
+                    dispatch_rs_packet[i].opa_select, dispatch_rs_packet[i].opb_select, dispatch_rs_packet[i].fu_sel, dispatch_rs_packet[i].op_sel, dispatch_rs_packet[i].alu_func, dispatch_rs_packet[i].mult_func,
+                    dispatch_rs_packet[i].reg1_ready, dispatch_rs_packet[i].reg2_ready, dispatch_rs_packet[i].rd_mem, dispatch_rs_packet[i].wr_mem, dispatch_rs_packet[i].cond_branch, dispatch_rs_packet[i].uncond_branch, dispatch_rs_packet[i].halt, dispatch_rs_packet[i].illegal, dispatch_rs_packet[i].csr_op, dispatch_rs_packet[i].enable, dispatch_rs_packet[i].valid
+                    );
 
             $fdisplay(pipe_out, "dispatch_rob_packet:");
                 $fdisplay(pipe_out, "  | t_idx | told_idx | ar_idx | enable |   NPC    |");
