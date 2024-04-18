@@ -400,16 +400,13 @@ module testbench;
             for (int i = 0; i < 7; i++) 
                 $fdisplay(pipe_out,"%2d|%d",
                     fu_prf_packet[i].idx, fu_prf_packet[i].value);
-        //     $fdisplay(pipe_out, "");
-        // $fdisplay(pipe_out, "");
 
-        $fdisplay(pipe_out, "-------------COMPLETE-------------");
-            // $fdisplay(pipe_out, "");
+        $fdisplay(pipe_out, "COMPLETE");
 
-            $fdisplay(pipe_out,"complete_rob_packet:");
-                $fdisplay(pipe_out,"  | rob_idx | dest_value | complete |");
+            // complete_rob_packet
+                $fdisplay(pipe_out," |rob| dest_value|c");
                 for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |   %2d    | %d |    %b     |", 
+                    $fdisplay(pipe_out, "%1d| %2d| %d|%b", 
                         i, complete_rob_packet[i].rob_idx, complete_rob_packet[i].dest_value, complete_rob_packet[i].complete);
             // $fdisplay(pipe_out, "");
             
