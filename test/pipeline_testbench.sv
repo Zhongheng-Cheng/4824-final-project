@@ -423,12 +423,11 @@ module testbench;
                 $fdisplay(pipe_out, "%1d|%2d|%2d|%2d|  %b | %b| %b| %d| %d|%x", 
                     i, rob_retire_packet[i].t_idx, rob_retire_packet[i].told_idx,rob_retire_packet[i].ar_idx,rob_retire_packet[i].halt, rob_retire_packet[i].precise_state_enable, rob_retire_packet[i].complete, rob_retire_packet[i].target_pc, rob_retire_packet[i].dest_value ,rob_retire_packet[i].NPC);
             
-            $fdisplay(pipe_out, "retire_packet:");
-                $fdisplay(pipe_out, "  | t_idx | ar_idx |   NPC    | complete |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |  %2d   |   %2d   | %x |    %b     |",
-                        i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
-            // $fdisplay(pipe_out, "");
+            // retire_packet
+            $fdisplay(pipe_out, " | t|ar|   NPC  |c");
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d|%2d|%2d|%x|%b",
+                    i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
 
             $fdisplay(pipe_out, "retire_freelist_packet:");
                 $fdisplay(pipe_out, "  | told_idx | valid |");

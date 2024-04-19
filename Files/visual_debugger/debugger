@@ -24,7 +24,8 @@ data = {
     "fu_prf_packet": [],
     "complete_rob_packet": [],
     "cdb_packet": [],
-    "rob_retire_packet": []
+    "rob_retire_packet": [],
+    "retire_packet": []
 }
 
 def read_pipeline_output(filepath):
@@ -70,6 +71,7 @@ def read_pipeline_output(filepath):
                 readnlines(fo, cycle, data['cdb_packet'], 1 + superscalar_ways)
             elif line == "RETIRE":
                 readnlines(fo, cycle, data['rob_retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['retire_packet'], 1 + superscalar_ways)
 
 def readnlines(fo, cycle, lst, n):
     for _ in range(n):
@@ -203,7 +205,8 @@ def main(stdscr):
             ["dispatch_rs_packet", "dispatch_maptable_packet"],
             ["rs_issue_packet", "issue_packet"],
             ["issue_fu_packet"],
-            ["fu_packet", "complete_rob_packet", "cdb_packet", "rob_retire_packet"]
+            ["fu_packet", "complete_rob_packet", "cdb_packet", "rob_retire_packet"],
+            ["retire_packet"]
         ]
 
         for i, table in enumerate(column0):
