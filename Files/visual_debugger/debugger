@@ -1,0 +1,315 @@
+#!/usr/bin/python3
+
+import curses
+
+superscalar_ways = 3
+data = {
+    "rob": [],
+    "prf": [],
+    "map_table": [],
+    "rs": [],
+    "proc2Imem_addr": [],
+    "fetch_packet": [],
+    "fetch_dispatch_packet": [],
+    "dispatch_rs_packet": [],
+    "dispatch_fetch_packet": [],
+    "rob_dispatch_packet": [],
+    "dispatch_rob_packet": [],
+    "dispatch_maptable_packet": [],
+    "rs_issue_packet": [],
+    "issue_packet": [],
+    "issue_fu_packet": [],
+    "fu_packet": [],
+    "fu_rs_packet": [],
+    "fu_prf_packet": [],
+    "complete_rob_packet": [],
+    "cdb_packet": [],
+    "rob_retire_packet": [],
+    "retire_packet": [],
+    "retire_freelist_packet": [],
+    "retire_wfi_halt": [],
+    "halt": []
+}
+
+def read_pipeline_output(filepath):
+    with open(filepath, 'r') as fo:
+        while True:
+            line = fo.readline()
+            if not line:
+                return cycle # total number of cycles
+            
+            line = line.strip('\n')
+            if line[:5] == "cycle":
+                cycle = int(line.split()[-1])
+                for i in data.values():
+                    i.append([])
+            elif line == "ROB Table":
+                readnlines(fo, cycle, data["rob"], 33)
+            elif line == "Physical Register File":
+                readnlines(fo, cycle, data["prf"], 33)
+            elif line == "Maptable":
+                readnlines(fo, cycle, data["map_table"], 32)
+            elif line == "RS Table":
+                readnlines(fo, cycle, data["rs"], 34)
+            elif line == "FETCH":
+                readnlines(fo, cycle, data["proc2Imem_addr"], superscalar_ways)
+                readnlines(fo, cycle, data['fetch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['fetch_dispatch_packet'], 1 + superscalar_ways)
+            elif line == "DISPATCH":
+                readnlines(fo, cycle, data['rob_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_fetch_packet'], 2)
+                readnlines(fo, cycle, data['dispatch_rs_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_rob_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['dispatch_maptable_packet'], 1 + superscalar_ways)
+            elif line == "ISSUE":
+                readnlines(fo, cycle, data['rs_issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['issue_fu_packet'], 1 + superscalar_ways)
+            elif line == "EXECUTE":
+                readnlines(fo, cycle, data['fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['fu_rs_packet'], 6)
+                readnlines(fo, cycle, data["fu_prf_packet"], 8)
+            elif line == "COMPLETE":
+                readnlines(fo, cycle, data["complete_rob_packet"], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['cdb_packet'], 1 + superscalar_ways)
+            elif line == "RETIRE":
+                readnlines(fo, cycle, data['rob_retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['retire_freelist_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle, data['retire_wfi_halt'], 1)
+                readnlines(fo, cycle, data['halt'], 1)
+
+def readnlines(fo, cycle, lst, n):
+    for _ in range(n):
+        line = fo.readline().strip('\n')
+        lst[cycle].append(line)
+    return
+
+class Cycle():
+    def __init__(self):
+        self.now = 0
+        self.limit = [0, 999]
+        return
+
+    def add_to_cycle(self, num):
+        self.now += num
+        if self.now < self.limit[0]:
+            self.now = self.limit[0]
+        elif self.now > self.limit[1]:
+            self.now = self.limit[1]
+        return
+
+    def move_to_cycle(self, num):
+        self.now = num
+        if self.now < self.limit[0]:
+            self.now = self.limit[0]
+        elif self.now > self.limit[1]:
+            self.now = self.limit[1]
+        return
+
+class Page():
+    def __init__(self):
+        self.pages = ["Modules", "Stages"]
+        self.curr_index = 0
+        return
+    
+    def next_page(self):
+        self.curr_index = (self.curr_index + 1) % len(self.pages)
+        return
+    
+    def curr_page(self):
+        return self.pages[self.curr_index]
+
+
+def new_window(title, nlines, ncols, begin_y, begin_x):
+    win = curses.newwin(nlines, ncols, begin_y, begin_x)
+    win.border()
+    win.addstr(0, max(0, (ncols - 1) // 2 - len(title) // 2), title, curses.color_pair(1) | curses.A_BOLD)
+    win.refresh()
+    return win
+
+
+def main(stdscr):
+    def begin_y_line(n):
+        return (superscalar_ways + 3) * n
+    
+    def y_next_to(name):
+        return wins[name].getbegyx()[0] + wins[name].getmaxyx()[0]
+    
+    def x_next_to(name):
+        return wins[name].getbegyx()[1] + wins[name].getmaxyx()[1]
+
+    def update_ui_main():
+
+        # create window for Keys
+        wins["keys"] = new_window(title="Keys", 
+                                  nlines=11, 
+                                  ncols=15, 
+                                  begin_y=0, 
+                                  begin_x=0
+                                  )
+        wins["keys"].addstr(1, 1, "Q: quit")
+        wins["keys"].addstr(2, 1, "L: next cycle")
+        wins["keys"].addstr(3, 1, "J: prev cycle")
+        wins["keys"].addstr(4, 1, "I: +10 cycles")
+        wins["keys"].addstr(5, 1, "K: -10 cycles")
+        wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
+        wins["keys"].addstr(7, 1, "T: end go to ")
+        wins["keys"].addstr(8, 1, "B: backspace ")
+        wins["keys"].addstr(9, 1, "C: next page ")
+        wins["keys"].refresh()
+
+        # create window for Cycle
+        wins["cycle"] = new_window(title="Cycle", 
+                                nlines=3, 
+                                ncols=15, 
+                                begin_y=11, 
+                                begin_x=0
+                                )
+        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+        wins['cycle'].refresh()
+
+        return
+    
+
+    def update_ui_modules():
+
+        column0 = ["map_table"]
+
+        for table in column0:
+            wins[table] = new_window(title=table, 
+                                nlines=18, 
+                                ncols=15, 
+                                begin_y=14, 
+                                begin_x=0
+                                )
+            for j in range(16):
+                wins[table].addstr(j + 1, 1, data[table][min(cycle.now, max_cycle)][j] + '|' + data[table][min(cycle.now, max_cycle)][j + 16])
+            wins[table].refresh()
+
+        line0 = ["rob", "prf", "rs"]
+
+        for i, table in enumerate(line0):
+            wins[table] = new_window(title=table, 
+                                nlines=len(data[table][0]) + 2, 
+                                ncols=len(data[table][0][0]) + 2, 
+                                begin_y=0, 
+                                begin_x=x_next_to(line0[i - 1] if i > 0 else "keys")
+                                )
+            for j, line in enumerate(data[table][min(cycle.now, max_cycle)]):
+                wins[table].addstr(j+1, 1, line)
+            wins[table].refresh()
+
+        return
+    
+
+    def update_ui_stages():
+
+        column0 = ["proc2Imem_addr", "fu_rs_packet", "fu_prf_packet"]
+        lines = [
+            ["fetch_packet", "fetch_dispatch_packet", "rob_dispatch_packet", "dispatch_fetch_packet", "dispatch_rob_packet"],
+            ["dispatch_rs_packet", "dispatch_maptable_packet"],
+            ["rs_issue_packet", "issue_packet"],
+            ["issue_fu_packet"],
+            ["fu_packet", "complete_rob_packet", "cdb_packet", "rob_retire_packet"],
+            ["retire_packet", "retire_freelist_packet", "retire_wfi_halt", "halt"]
+        ]
+
+        for i, table in enumerate(column0):
+            wins[table] = new_window(title=table, 
+                                nlines=len(data[table][0]) + 2, 
+                                ncols=len(data[table][0][0]) + 2, 
+                                begin_y=y_next_to(column0[i - 1] if i > 0 else "cycle"), 
+                                begin_x=0
+                                )
+            for j, line in enumerate(data[table][min(cycle.now, max_cycle)]):
+                wins[table].addstr(j+1, 1, line)
+            wins[table].refresh()
+
+        for line_i in range(len(lines)):
+            for i, table in enumerate(lines[line_i]):
+                ncols = len(data[table][0][0]) + 2
+                wins[table] = new_window(title=table[:ncols], 
+                                    nlines=len(data[table][0]) + 2, 
+                                    ncols=ncols, 
+                                    begin_y=begin_y_line(line_i), 
+                                    begin_x=x_next_to(lines[line_i][i - 1] if i > 0 else "keys")
+                                    )
+                for j, row in enumerate(data[table][min(cycle.now, max_cycle)]):
+                    wins[table].addstr(j+1, 1, row)
+                wins[table].refresh()
+
+        return
+
+    # initialization
+    wins = {"main": stdscr}
+    curses.curs_set(False)
+    wins["main"].clear()
+    wins["main"].refresh()
+    
+    goto_input = ""
+    recording = False
+    key_press = ""
+
+    # main loop
+    while True:
+        height, width = wins["main"].getmaxyx()
+        if height < 25 or width < 100:
+            wins['main'].clear()
+            wins["main"].addstr(0, 0, "Not enough space!")
+            wins["main"].refresh()
+            wins["main"].getch()
+            continue
+        wins["main"].clear()
+        wins["main"].refresh()
+        update_ui_main()
+        if page.curr_page() == "Modules":
+            update_ui_modules()
+        elif page.curr_page() == "Stages":
+            update_ui_stages()
+
+        
+        key_press = wins["main"].getch()
+
+        # quit the debugger
+        if key_press == ord('q'):
+            return
+        
+        # move cycle count
+        if key_press == ord('l'):   
+            cycle.add_to_cycle(1)
+        elif key_press == ord('j'):   
+            cycle.add_to_cycle(-1)
+        elif key_press == ord('i'):   
+            cycle.add_to_cycle(10)
+        elif key_press == ord('k'):   
+            cycle.add_to_cycle(-10)
+
+        # go-to function
+        elif key_press == ord('g'): # start go-to
+            goto_input = ""
+            recording = True
+        elif recording and key_press == ord('t'): # end go-to
+            recording = False
+            if goto_input:
+                cycle.move_to_cycle(int(goto_input[-3:]))
+                goto_input = ""
+        elif recording and key_press == ord('b'): # backspace
+            goto_input = goto_input[:-1]
+        elif recording and 48 <= key_press <= 57: # numbers: 0-9
+            char = str(int(chr(key_press)))
+            goto_input += char
+
+        # switch page
+        elif key_press == ord('c'):
+            page.next_page()
+
+
+if __name__ == "__main__":
+    cycle = Cycle()
+    page = Page()
+    max_cycle = read_pipeline_output("visual_debugger/pipeline.out")
+    curses.initscr()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.wrapper(main)
