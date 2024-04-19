@@ -124,7 +124,7 @@ class Page():
 def new_window(title, nlines, ncols, begin_y, begin_x):
     win = curses.newwin(nlines, ncols, begin_y, begin_x)
     win.border()
-    win.addstr(0, max(0, (ncols - 1) // 2 - len(title) // 2), title, curses.A_BOLD)
+    win.addstr(0, max(0, (ncols - 1) // 2 - len(title) // 2), title, curses.color_pair(1) | curses.A_BOLD)
     win.refresh()
     return win
 
@@ -309,4 +309,7 @@ if __name__ == "__main__":
     cycle = Cycle()
     page = Page()
     max_cycle = read_pipeline_output("visual_debugger/pipeline.out")
+    curses.initscr()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
     curses.wrapper(main)
