@@ -294,6 +294,11 @@ export CLOCK_PERIOD   = 12	# TODO: You will need to make match SYNTH_CLOCK_PERIO
 ## RULES
 ################################################################################
 
+# Visual debugger:
+vis: simv
+	./simv | tee program.out
+	visual_debugger/debugger
+
 # Default target:
 all:    simv
 	./simv | tee program.out

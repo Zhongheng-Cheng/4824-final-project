@@ -415,15 +415,13 @@ module testbench;
                 $fdisplay(pipe_out, "%1d| %2d", i, cdb_packet.t_idx[i]);
 
 
-        $fdisplay(pipe_out, "-------------RETIRE-------------");
-            // $fdisplay(pipe_out, "");
+        $fdisplay(pipe_out, "RETIRE");
             
-            $fdisplay(pipe_out, "rob_retire_packet:");
-                $fdisplay(pipe_out, "  | t_idx | told_idx | ar_idx | halt | precise | complete | target_pc  | dest_value |   NPC    |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |  %2d   |    %2d    |   %2d   |  %b   |    %b    |    %b     | %d | %d | %x |", 
-                        i, rob_retire_packet[i].t_idx, rob_retire_packet[i].told_idx,rob_retire_packet[i].ar_idx,rob_retire_packet[i].halt, rob_retire_packet[i].precise_state_enable, rob_retire_packet[i].complete, rob_retire_packet[i].target_pc, rob_retire_packet[i].dest_value ,rob_retire_packet[i].NPC);
-            // $fdisplay(pipe_out, "");
+            // rob_retire_packet
+            $fdisplay(pipe_out, " | t|to|ar|halt|pr|cp| target_pc | dest_value|   NPC  ");
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d|%2d|%2d|%2d|  %b | %b| %b| %d| %d|%x", 
+                    i, rob_retire_packet[i].t_idx, rob_retire_packet[i].told_idx,rob_retire_packet[i].ar_idx,rob_retire_packet[i].halt, rob_retire_packet[i].precise_state_enable, rob_retire_packet[i].complete, rob_retire_packet[i].target_pc, rob_retire_packet[i].dest_value ,rob_retire_packet[i].NPC);
             
             $fdisplay(pipe_out, "retire_packet:");
                 $fdisplay(pipe_out, "  | t_idx | ar_idx |   NPC    | complete |");
@@ -581,7 +579,7 @@ module testbench;
         $display("STARTING TESTBENCH!\n");
 
         wb_fileno = $fopen("./writeback.out","w");
-        pipe_out = $fopen("./pipeline.out","w");
+        pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         enable = 1;
         clock = 1;
