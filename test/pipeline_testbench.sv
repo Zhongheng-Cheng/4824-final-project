@@ -429,19 +429,18 @@ module testbench;
                 $fdisplay(pipe_out, "%1d|%2d|%2d|%x|%b",
                     i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
 
-            $fdisplay(pipe_out, "retire_freelist_packet:");
-                $fdisplay(pipe_out, "  | told_idx | valid |");
-                for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                    $fdisplay(pipe_out, "%1d |    %2d    |   %b   |", 
-                        i, retire_freelist_packet[i].told_idx, retire_freelist_packet[i].valid);
-            // $fdisplay(pipe_out, "");
+            // retire_freelist_packet
+            $fdisplay(pipe_out, " | told | vld ");
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                $fdisplay(pipe_out, "%1d|  %2d  |  %b  ", 
+                    i, retire_freelist_packet[i].told_idx, retire_freelist_packet[i].valid);
 
-            $fdisplay(pipe_out, "retire_wfi_halt: %b", retire_wfi_halt);
-            // $fdisplay(pipe_out, "");
+            // retire_wfi_halt
+            $fdisplay(pipe_out, "       %b       ", retire_wfi_halt);
 
-            $fdisplay(pipe_out, "halt: %b", halt);
-        //     $fdisplay(pipe_out, "");
-        // $fdisplay(pipe_out, "");
+            // halt
+            $fdisplay(pipe_out, "  %b  ", halt);
+
     endfunction
 
     always @(negedge clock) begin
