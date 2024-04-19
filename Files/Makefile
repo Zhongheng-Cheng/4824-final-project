@@ -296,7 +296,7 @@ export CLOCK_PERIOD   = 12	# TODO: You will need to make match SYNTH_CLOCK_PERIO
 
 # Visual debugger:
 vis: simv
-	./simv | tee program.out
+	./simv > program.out
 	visual_debugger/debugger
 
 # Default target:
@@ -703,7 +703,7 @@ clean:
 	rm -rf *simv *simv.daidir csrc vcs.key *program.out *.key *simv.vdb .fsm.sch.verilog.xml
 	rm -rf vis_simv vis_simv.daidir test_results.out
 	rm -rf dve* inter.vpd DVEfiles
-	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out pipeline.out writeback.out vc_hdrs.h
+	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out visual_debugger/pipeline.out writeback.out vc_hdrs.h
 	rm -f *.elf *.dump debug_bin #.mem
 	rm -rf verdi* novas* *fsdb*
 
