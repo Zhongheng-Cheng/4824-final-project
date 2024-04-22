@@ -32,6 +32,7 @@ data = {
 }
 
 def read_pipeline_output(filepath):
+    global superscalar_ways
     with open(filepath, 'r') as fo:
         while True:
             line = fo.readline()
@@ -43,6 +44,8 @@ def read_pipeline_output(filepath):
                 cycle = int(line.split()[-1])
                 for i in data.values():
                     i.append([])
+            elif line == "superscalar_ways":
+                superscalar_ways = int(fo.readline())
             elif line == "ROB Table":
                 readnlines(fo, cycle, data["rob"], 33)
             elif line == "Physical Register File":
