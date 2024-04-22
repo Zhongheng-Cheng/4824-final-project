@@ -578,6 +578,8 @@ module testbench;
 
         wb_fileno = $fopen("./writeback.out","w");
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
+        $fdisplay(pipe_out, "superscalar_ways");
+        $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
         $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         enable = 1;
         clock = 1;
