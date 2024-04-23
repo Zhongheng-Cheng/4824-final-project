@@ -295,9 +295,15 @@ export CLOCK_PERIOD   = 12	# TODO: You will need to make match SYNTH_CLOCK_PERIO
 ################################################################################
 
 # Visual debugger:
-vis: simv
-	./simv > program.out
+%.vis: %.out
 	visual_debugger/debugger
+
+.PHONY: vis
+
+# OUTPUTS = $(PROGRAMS:programs/%=output/%)
+%.out: programs/%.mem simv
+	./simv +MEMORY=$<
+.PHONY: %.out
 
 # Default target:
 all:    simv
