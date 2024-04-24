@@ -13,7 +13,7 @@
 #
 #
 
-SOURCE = test_progs/simple_test/alexnet.c
+SOURCE = test_progs/simple_test/haha.c
 
 CRT = crt.s
 LINKERS = linker.lds
@@ -299,6 +299,17 @@ all:    simv
 	./simv | tee program.out
 
 .PHONY: all
+
+# Visual debugger:
+%.vis: %.out
+	visual_debugger/debugger
+
+.PHONY: vis
+
+# OUTPUTS = $(PROGRAMS:programs/%=output/%)
+%.out: programs/%.mem simv
+	./simv +MEMORY=$<
+.PHONY: %.out
 
 
 #----Simulation------------------------------:
