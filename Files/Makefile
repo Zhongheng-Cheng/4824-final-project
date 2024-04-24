@@ -300,6 +300,7 @@ all:    simv
 
 .PHONY: all
 
+
 #----Simulation------------------------------:
 
 sim:	simv
@@ -309,7 +310,7 @@ simv:	$(HEADERS) $(PIPELINEFILES) $(PIPELINETESTBENCH)
 	$(VCS) $^ -o simv
 
 .PHONY: sim
-
+%.out: programs/%.mem simv ./simv +MEMORY=$<
 # ROB simulation
 $(ROB_NAME)_simv:	$(HEADERS) $(ROBFILES) $(ROBTESTBENCH)
 	$(VCS) $^ -o $(ROB_NAME)_simv
