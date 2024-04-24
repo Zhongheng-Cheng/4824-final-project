@@ -19,3 +19,7 @@ This command will firstly call `make xxx.out`, and then run the visual debugger 
 ```bash
 make xxx.vis
 ```
+
+# Parameter
+Number of bits = 32
+Mult Stage = 4
