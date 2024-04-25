@@ -483,13 +483,12 @@ module testbench;
         end
     end
 
-    always @(negedge clock) begin
+    always_comb begin
         if(reset) begin
-            //clock_count <= `SD 0;
-            instr_count <= `SD 0;
+            instr_count = 0;
         end else begin
-            //clock_count <= `SD (clock_count + 1);
-            instr_count <= `SD (instr_count + rob_retire_packet[0].complete + rob_retire_packet[1].complete + rob_retire_packet[2].complete);
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                instr_count = (instr_count + rob_retire_packet[i].complete);
         end
     end
 
