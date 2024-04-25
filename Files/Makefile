@@ -302,7 +302,7 @@ export CLOCK_PERIOD   = 12	# TODO: You will need to make match SYNTH_CLOCK_PERIO
 
 # OUTPUTS = $(PROGRAMS:programs/%=output/%)
 %.out: programs/%.mem simv
-	./simv +MEMORY=$<
+	./simv +MEMORY=$< | tee program.out
 .PHONY: %.out
 
 # Default target:
