@@ -302,7 +302,7 @@ typedef union packed {
 } INST; //instruction typedef, this should cover all types of instructions
 
 typedef enum logic [$clog2(`N_FU_UNITS):0] {
-	NONE = 0,
+	FU_NONE = 0,
 	LS_1 = 1,
 	LS_2 = 2,
 	ALU_1 = 3,
@@ -314,9 +314,10 @@ typedef enum logic [$clog2(`N_FU_UNITS):0] {
 } FU_SELECT;
 
 typedef enum logic [1:0]{
-	alu = 0,
-	mult = 1,
-	br = 2
+	OP_NONE = 0,
+	alu = 1,
+	mult = 2,
+	br = 3
 } OP_SELECT;
 
 
