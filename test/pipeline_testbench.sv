@@ -10,6 +10,7 @@ module testbench;
     logic [31:0] clock_count;
     logic [31:0] instr_count;
     int wb_fileno;
+    int cpi_fileno;
     int pipe_out;
     
     EXCEPTION_CODE pipeline_error_status;
@@ -462,9 +463,9 @@ module testbench;
 
         begin
             cpi = (clock_count + 1.0) / instr_count;
-            $fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+            $fdisplay(cpi_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
                 clock_count+1, instr_count, cpi);
-            $fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
+            $fdisplay(cpi_fileno, "@@  %4.2f ns total time to execute\n@@\n",
                 clock_count*`VERILOG_CLOCK_PERIOD);
         end
     endtask  // task show_clk_count
@@ -578,6 +579,7 @@ module testbench;
         $display("STARTING TESTBENCH!\n");
 
         wb_fileno = $fopen("./writeback.out","w");
+        cpi_fileno = $fopen("./cpi_cal.out", "w");
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplay(pipe_out, "superscalar_ways");
         $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
@@ -607,9 +609,9 @@ module testbench;
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
-	show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
-	show_clk_count;
-	//$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+        // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        show_clk_count;
+        //$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
