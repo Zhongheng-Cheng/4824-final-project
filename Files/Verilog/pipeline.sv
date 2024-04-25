@@ -203,6 +203,10 @@ module pipeline (
 
 		// Outputs
 		.freelist_dispatch_out(freelist_dispatch_packet)
+		// `ifdef TEST_MODE
+		// .freelist_display(freelist_display)
+		// .gnt_free_idx_display(gnt_free_idx_display)
+	  	// `endif
 	);
 
 

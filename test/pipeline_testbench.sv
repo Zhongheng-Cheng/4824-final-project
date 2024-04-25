@@ -607,13 +607,13 @@ module testbench;
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
-	//show_mem_with_decimal;
+	show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
 	show_clk_count;
 	//$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #10000
+        #100000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 
