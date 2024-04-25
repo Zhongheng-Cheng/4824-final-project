@@ -248,6 +248,19 @@ module testbench;
                     `endif
     );
 
+    function string fu_name(FU_SELECT value);
+    case(value)
+        LS_1: return "LS_1";
+        LS_2: return "LS_2";
+        ALU_1: return "ALU_1";
+        ALU_2: return "ALU_2";
+        ALU_3: return "ALU_3";
+        MULT_1: return "MULT_1";
+        MULT_2: return "MULT_2";
+        BRANCH: return "BRANCH";
+        default: return "None";
+    endcase
+    endfunction
 
     // modify it for print the debug output
 
@@ -268,16 +281,16 @@ module testbench;
 
             $fdisplay(pipe_out, "RS Table");
                 // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
-                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst |alu|mul");
+                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|    inst   |alu|mul  ");
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
                     $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %d| %d",
                         i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
                 
                 // opa_select | opb_select | fu_sel | op_sel | reg1_ready | reg2_ready | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid
-                $fdisplay(pipe_out, "  |asl|bsl|fusl|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
+                $fdisplay(pipe_out, "  |asl|bsl|fu_sel|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
                 for (int i = 0; i < `N_RS_ENTRIES; i++)
-                    $fdisplay(pipe_out, "%2d| %2d| %2d|  %d |  %d | %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b ",
-                        i, rs_table[i].opa_select, rs_table[i].opb_select, rs_table[i].fu_sel, rs_table[i].op_sel, rs_table[i].reg1_ready, rs_table[i].reg2_ready, rs_table[i].rd_mem, rs_table[i].wr_mem, rs_table[i].cond_branch, rs_table[i].uncond_branch, rs_table[i].halt, rs_table[i].illegal, rs_table[i].csr_op, rs_table[i].valid);
+                    $fdisplay(pipe_out, "%2d| %2d| %2d|%6s|  %d | %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b ",
+                        i, rs_table[i].opa_select, rs_table[i].opb_select, fu_name(rs_table[i].fu_sel), rs_table[i].op_sel, rs_table[i].reg1_ready, rs_table[i].reg2_ready, rs_table[i].rd_mem, rs_table[i].wr_mem, rs_table[i].cond_branch, rs_table[i].uncond_branch, rs_table[i].halt, rs_table[i].illegal, rs_table[i].csr_op, rs_table[i].valid);
 
             $fdisplay(pipe_out, "Maptable");
                 for (int i = 0; i < `N_ARCH_REG; i++) begin
