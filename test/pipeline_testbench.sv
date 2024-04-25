@@ -250,26 +250,79 @@ module testbench;
     );
 
     function string fu_name(FU_SELECT value);
-    case(value)
-        LS_1: return "LS_1";
-        LS_2: return "LS_2";
-        ALU_1: return "ALU_1";
-        ALU_2: return "ALU_2";
-        ALU_3: return "ALU_3";
-        MULT_1: return "MULT_1";
-        MULT_2: return "MULT_2";
-        BRANCH: return "BRANCH";
-        FU_NONE: return "";
-    endcase
+        case(value)
+            LS_1: return "LS_1";
+            LS_2: return "LS_2";
+            ALU_1: return "ALU_1";
+            ALU_2: return "ALU_2";
+            ALU_3: return "ALU_3";
+            MULT_1: return "MULT_1";
+            MULT_2: return "MULT_2";
+            BRANCH: return "BRANCH";
+            FU_NONE: return "";
+        endcase
     endfunction
 
     function string op_name(OP_SELECT value);
-    case(value)
-        alu: return "alu";
-        mult: return "mult";
-        br: return "brch";
-        OP_NONE: return "";
-    endcase
+        case(value)
+            alu: return "alu";
+            mult: return "mult";
+            br: return "brch";
+            OP_NONE: return "";
+        endcase
+    endfunction
+
+    function string inst_name(INST value, logic valid);
+        if (valid) begin
+            casez(value)
+                `RV32_LUI: return "LUI";
+                `RV32_AUIPC: return "AUIPC";
+                `RV32_JAL: return "JAL";
+                `RV32_JALR: return "JALR";
+                `RV32_BEQ: return "BEQ";
+                `RV32_BNE: return "BNE";
+                `RV32_BLT: return "BLT";
+                `RV32_BGE: return "BGE";
+                `RV32_BLTU: return "BLTU";
+                `RV32_BGEU: return "BGEU";
+                `RV32_LB: return "LB";
+                `RV32_LH: return "LH";
+                `RV32_LW: return "LW";
+                `RV32_LBU: return "LBU";
+                `RV32_LHU: return "LHU";
+                `RV32_SB: return "SB";
+                `RV32_SH: return "SH";
+                `RV32_SW: return "SW";
+                `RV32_ADDI: return "ADDI";
+                `RV32_SLTI: return "SLTI";
+                `RV32_SLTIU: return "SLTIU";
+                `RV32_ANDI: return "ANDI";
+                `RV32_ORI: return "ORI";
+                `RV32_XORI: return "XORI";
+                `RV32_SLLI: return "SLLI";
+                `RV32_SRLI: return "SRLI";
+                `RV32_SRAI: return "SRAI";
+                `RV32_ADD: return "ADD";
+                `RV32_SUB: return "SUB";
+                `RV32_SLT: return "SLT";
+                `RV32_SLTU: return "SLTU";
+                `RV32_AND: return "AND";
+                `RV32_OR: return "OR";
+                `RV32_XOR: return "XOR";
+                `RV32_SLL: return "SLL";
+                `RV32_SRL: return "SRL";
+                `RV32_SRA: return "SRA";
+                `RV32_MUL: return "MUL";
+                `RV32_MULH: return "MULH";
+                `RV32_MULHSU: return "MULHSU";
+                `RV32_MULHU: return "MULHU";
+                `RV32_CSRRW: return "CSRRW";
+                `RV32_CSRRS: return "CSRRS";
+                `RV32_CSRRC: return "CSRRC";
+                `WFI: return "WFI";
+            endcase
+        end else
+            return "xxx";
     endfunction
 
     // modify it for print the debug output
@@ -291,10 +344,10 @@ module testbench;
 
             $fdisplay(pipe_out, "RS Table");
                 // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
-                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|    inst   |alu|mul  ");
+                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst     |alu|mul  ");
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
-                    $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d|  %h | %d| %d",
-                        i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
+                    $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d|%5s: %h| %d| %d",
+                        i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, inst_name(rs_table[i].inst, rs_table[i].valid), rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
                 
                 // opa_select | opb_select | fu_sel | op_sel | reg1_ready | reg2_ready | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid
                 $fdisplay(pipe_out, "  |asl|bsl|fu_sel|opsl|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
@@ -317,14 +370,14 @@ module testbench;
                 $fdisplay(pipe_out, "%1d| %10d", 
                     i, proc2Imem_addr[i]);
             // proc2Imem_addr | fetch_packet: inst | NPC | PC | valid | fetch_dispatch_packet: inst | NPC | PC | valid");
-            $fdisplay(pipe_out, " |   inst  |   NPC   |    PC   |vld");
+            $fdisplay(pipe_out, " |      inst     |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %h| %h| %h| %b ", 
-                    i, fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid);
-            $fdisplay(pipe_out, " |   inst  |   NPC   |    PC   |vld");
+                $fdisplay(pipe_out, "%1d|%5s: %h| %h| %h| %b ", 
+                    i, inst_name(fetch_packet[i].inst, fetch_packet[i].valid), fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid);
+            $fdisplay(pipe_out, " |      inst     |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %h| %h| %h| %b ", 
-                    i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
+                $fdisplay(pipe_out, "%1d|%5s: %h| %h| %h| %b ", 
+                    i, inst_name(fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].valid), fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
 
         $fdisplay(pipe_out, "DISPATCH");
             $fdisplay(pipe_out, " |stall|new");
@@ -343,11 +396,11 @@ module testbench;
             // $fdisplay(pipe_out, "dispatch_rs_packet:");
                 // $fdisplay(pipe_out, "  |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
                 // $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   ");
-            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|   inst  |asl|bsl|fu_sel|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|      inst     |asl|bsl|fu_sel|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS ; i++)
-                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d| %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
+                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d|%5s: %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
                     i, 
-                    dispatch_rs_packet[i].NPC, dispatch_rs_packet[i].PC, dispatch_rs_packet[i].reg1_pr_idx, dispatch_rs_packet[i].reg2_pr_idx, dispatch_rs_packet[i].pr_idx, dispatch_rs_packet[i].rob_idx, dispatch_rs_packet[i].ar_idx, dispatch_rs_packet[i].inst,
+                    dispatch_rs_packet[i].NPC, dispatch_rs_packet[i].PC, dispatch_rs_packet[i].reg1_pr_idx, dispatch_rs_packet[i].reg2_pr_idx, dispatch_rs_packet[i].pr_idx, dispatch_rs_packet[i].rob_idx, dispatch_rs_packet[i].ar_idx, inst_name(dispatch_rs_packet[i].inst, dispatch_rs_packet[i].valid), dispatch_rs_packet[i].inst,
                     dispatch_rs_packet[i].opa_select, dispatch_rs_packet[i].opb_select, fu_name(dispatch_rs_packet[i].fu_sel), op_name(dispatch_rs_packet[i].op_sel), dispatch_rs_packet[i].alu_func, dispatch_rs_packet[i].mult_func,
                     dispatch_rs_packet[i].reg1_ready, dispatch_rs_packet[i].reg2_ready, dispatch_rs_packet[i].rd_mem, dispatch_rs_packet[i].wr_mem, dispatch_rs_packet[i].cond_branch, dispatch_rs_packet[i].uncond_branch, dispatch_rs_packet[i].halt, dispatch_rs_packet[i].illegal, dispatch_rs_packet[i].csr_op, dispatch_rs_packet[i].enable, dispatch_rs_packet[i].valid
                     );
@@ -378,10 +431,10 @@ module testbench;
             //         i, rs_issue_packet[i].NPC, rs_issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, rs_issue_packet[i].pr_idx, rs_issue_packet[i].rob_idx, rs_issue_packet[i].ar_idx, rs_issue_packet[i].inst, rs_issue_packet[i].opa_select, rs_issue_packet[i].opb_select, rs_issue_packet[i].fu_sel, rs_issue_packet[i].op_sel, rs_issue_packet[i].rd_mem, rs_issue_packet[i].wr_mem, rs_issue_packet[i].cond_branch, rs_issue_packet[i].uncond_branch, rs_issue_packet[i].halt, rs_issue_packet[i].illegal, rs_issue_packet[i].csr_op, rs_issue_packet[i].valid);
 
             // rs_issue_packet
-            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|   inst  |asl|bsl|fu_sel|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|      inst     |asl|bsl|fu_sel|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d| %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
-                    i, issue_packet[i].NPC, issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, issue_packet[i].pr_idx, issue_packet[i].rob_idx, issue_packet[i].ar_idx, issue_packet[i].inst,
+                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d|%5s: %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
+                    i, issue_packet[i].NPC, issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, issue_packet[i].pr_idx, issue_packet[i].rob_idx, issue_packet[i].ar_idx, inst_name(issue_packet[i].inst, issue_packet[i].valid), issue_packet[i].inst,
                     issue_packet[i].opa_select, issue_packet[i].opb_select, fu_name(issue_packet[i].fu_select), op_name(issue_packet[i].op_sel), issue_packet[i].alu_func, issue_packet[i].mult_func,
                     issue_packet[i].rd_mem, issue_packet[i].wr_mem, issue_packet[i].cond_branch, issue_packet[i].uncond_branch, issue_packet[i].halt, issue_packet[i].illegal, issue_packet[i].csr_op, issue_packet[i].valid
                     );
@@ -393,10 +446,10 @@ module testbench;
                     i, issue_packet[i].rs1_value, issue_packet[i].rs2_value);
 
             // issue_fu_packet
-            $fdisplay(pipe_out, " |   NPC   |    PC   | rs1_value| rs2_value| pr|rob| ar|   inst  |asl|bsl|fu_sel|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | rs1_value| rs2_value| pr|rob| ar|      inst     |asl|bsl|fu_sel|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %h| %h|%d|%d| %2d| %2d| %2d| %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
-                    i, issue_fu_packet[i].NPC, issue_fu_packet[i].PC, issue_fu_packet[i].rs1_value, issue_fu_packet[i].rs2_value, issue_fu_packet[i].pr_idx, issue_fu_packet[i].rob_idx, issue_fu_packet[i].ar_idx, issue_fu_packet[i].inst,
+                $fdisplay(pipe_out, "%1d| %h| %h|%d|%d| %2d| %2d| %2d|%5s: %h| %2d| %2d|%6s|%4s| %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
+                    i, issue_fu_packet[i].NPC, issue_fu_packet[i].PC, issue_fu_packet[i].rs1_value, issue_fu_packet[i].rs2_value, issue_fu_packet[i].pr_idx, issue_fu_packet[i].rob_idx, issue_fu_packet[i].ar_idx, inst_name(issue_fu_packet[i].inst, issue_fu_packet[i].valid), issue_fu_packet[i].inst,
                     issue_fu_packet[i].opa_select, issue_fu_packet[i].opb_select, fu_name(issue_fu_packet[i].fu_select), op_name(issue_fu_packet[i].op_sel), issue_fu_packet[i].alu_func, issue_fu_packet[i].mult_func,
                     issue_fu_packet[i].rd_mem, issue_fu_packet[i].wr_mem, issue_fu_packet[i].cond_branch, issue_fu_packet[i].uncond_branch, issue_fu_packet[i].halt, issue_fu_packet[i].illegal, issue_fu_packet[i].csr_op, issue_fu_packet[i].valid
                     );
@@ -467,7 +520,7 @@ module testbench;
 
     endfunction
 
-    always @(negedge clock) begin
+    always @(posedge clock) begin
         if (~reset) begin
             $fdisplay(pipe_out,"cycle %d", clock_count);
             dump_output();
