@@ -292,7 +292,7 @@ module testbench;
         $fdisplay(pipe_out, "FETCH");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
                 $fdisplay(pipe_out, "%1d| %10d", 
-                    i, proc2Imem_addr[i]);
+                    i, proc2Imem_addr[i]>>3);
             // proc2Imem_addr | fetch_packet: inst | NPC | PC | valid | fetch_dispatch_packet: inst | NPC | PC | valid");
             $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
@@ -488,7 +488,9 @@ module testbench;
             instr_count <= `SD 0;
         end else begin
             //clock_count <= `SD (clock_count + 1);
-            instr_count <= `SD (instr_count + rob_retire_packet[0].complete + rob_retire_packet[1].complete + rob_retire_packet[2].complete);
+            instr_count <= `SD (instr_count + rob_retire_packet[0].complete);
+
+            //instr_count <= `SD (instr_count + rob_retire_packet[0].complete + rob_retire_packet[1].complete + rob_retire_packet[2].complete);
         end
     end
 
@@ -613,7 +615,7 @@ module testbench;
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #100000
+        #1000000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 

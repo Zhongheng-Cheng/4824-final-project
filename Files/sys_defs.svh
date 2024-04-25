@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////
 
-`define SUPERSCALAR_WAYS	  3
+`define SUPERSCALAR_WAYS	  1
 `define N_PHYS_REG	  	  	  64
 `define N_ARCH_REG	  	  	  32
 `define N_RS_ENTRIES		  16
