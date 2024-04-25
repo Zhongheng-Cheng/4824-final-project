@@ -259,7 +259,7 @@ module testbench;
         MULT_1: return "MULT_1";
         MULT_2: return "MULT_2";
         BRANCH: return "BRANCH";
-        default: return "None";
+        NONE: return "";
     endcase
     endfunction
 
