@@ -22,10 +22,10 @@ module freelist (
 
 	output FREELIST_DISPATCH_PACKET                         freelist_dispatch_out
 
-  `ifdef TEST_MODE
-  , output logic [`N_PHYS_REG-1:0]                          freelist_display
-  , output logic [`SUPERSCALAR_WAYS-1:0][`N_PHYS_REG-1:0]   gnt_free_idx_display
-  `endif
+//   `ifdef TEST_MODE
+//   , output logic [`N_PHYS_REG-1:0]                          freelist_display
+//   , output logic [`SUPERSCALAR_WAYS-1:0][`N_PHYS_REG-1:0]   gnt_free_idx_display
+//   `endif
 );
 	logic [`N_PHYS_REG-1:0]                        freelist, next_freelist;
     logic [`N_PHYS_REG-1:0]                        available_free_idx;
@@ -33,10 +33,10 @@ module freelist (
     logic [`SUPERSCALAR_WAYS-1:0][`N_PHYS_REG-1:0] gnt_free_idx;
     logic [`SUPERSCALAR_WAYS-1:0][`N_PHYS_REG-1:0] sel_req;
 
-  `ifdef TEST_MODE
-    assign freelist_display     = freelist;
-    assign gnt_free_idx_display = gnt_free_idx;
-  `endif
+//   `ifdef TEST_MODE
+//     assign freelist_display     = freelist;
+//     assign gnt_free_idx_display = gnt_free_idx;
+//   `endif
 
     always_comb begin
         if (br_recover_enable) begin

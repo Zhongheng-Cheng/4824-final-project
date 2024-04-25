@@ -10,6 +10,7 @@ module testbench;
     logic [31:0] clock_count;
     logic [31:0] instr_count;
     int wb_fileno;
+    int cpi_fileno;
     int pipe_out;
     
     EXCEPTION_CODE pipeline_error_status;
@@ -283,7 +284,7 @@ module testbench;
                 // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
                 $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|    inst   |alu|mul  ");
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
-                    $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %d| %d",
+                    $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d|  %h | %d| %d",
                         i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
                 
                 // opa_select | opb_select | fu_sel | op_sel | reg1_ready | reg2_ready | rd_mem | wr_mem | cond_branch | uncond_branch | halt | illegal | csr_op | valid
@@ -307,13 +308,13 @@ module testbench;
                 $fdisplay(pipe_out, "%1d| %10d", 
                     i, proc2Imem_addr[i]);
             // proc2Imem_addr | fetch_packet: inst | NPC | PC | valid | fetch_dispatch_packet: inst | NPC | PC | valid");
-            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |vld");
+            $fdisplay(pipe_out, " |   inst  |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %d| %x| %x| %b ", 
+                $fdisplay(pipe_out, "%1d| %h| %h| %h| %b ", 
                     i, fetch_packet[i].inst, fetch_packet[i].NPC, fetch_packet[i].PC, fetch_packet[i].valid);
-            $fdisplay(pipe_out, " |    inst   |   NPC   |    PC   |vld");
+            $fdisplay(pipe_out, " |   inst  |   NPC   |    PC   |vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %d| %x| %x| %b ", 
+                $fdisplay(pipe_out, "%1d| %h| %h| %h| %b ", 
                     i, fetch_dispatch_packet[i].inst, fetch_dispatch_packet[i].NPC, fetch_dispatch_packet[i].PC, fetch_dispatch_packet[i].valid);
 
         $fdisplay(pipe_out, "DISPATCH");
@@ -333,9 +334,9 @@ module testbench;
             // $fdisplay(pipe_out, "dispatch_rs_packet:");
                 // $fdisplay(pipe_out, "  |   NPC    |    PC    | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx |    inst    |");
                 // $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   ");
-            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|   inst  |asl|bsl|fusl|opsl|alu|mul|r1+|r2+|rdm|wrm|cb|ub|halt|ilg|csr_op|en|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS ; i++)
-                $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
+                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d| %h| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b | %b | %b| %b|  %b | %b |   %b  | %b| %b ",
                     i, 
                     dispatch_rs_packet[i].NPC, dispatch_rs_packet[i].PC, dispatch_rs_packet[i].reg1_pr_idx, dispatch_rs_packet[i].reg2_pr_idx, dispatch_rs_packet[i].pr_idx, dispatch_rs_packet[i].rob_idx, dispatch_rs_packet[i].ar_idx, dispatch_rs_packet[i].inst,
                     dispatch_rs_packet[i].opa_select, dispatch_rs_packet[i].opb_select, dispatch_rs_packet[i].fu_sel, dispatch_rs_packet[i].op_sel, dispatch_rs_packet[i].alu_func, dispatch_rs_packet[i].mult_func,
@@ -345,7 +346,7 @@ module testbench;
             // $fdisplay(pipe_out, "dispatch_rob_packet:");
             $fdisplay(pipe_out, " | t | to| ar|e|   NPC   ");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%b| %x", 
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%b| %h", 
                     i, dispatch_rob_packet[i].t_idx, dispatch_rob_packet[i].told_idx, dispatch_rob_packet[i].ar_idx, dispatch_rob_packet[i].enable, dispatch_rob_packet[i].NPC);
             // $fdisplay(pipe_out, "");
             
@@ -368,9 +369,9 @@ module testbench;
             //         i, rs_issue_packet[i].NPC, rs_issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, rs_issue_packet[i].pr_idx, rs_issue_packet[i].rob_idx, rs_issue_packet[i].ar_idx, rs_issue_packet[i].inst, rs_issue_packet[i].opa_select, rs_issue_packet[i].opb_select, rs_issue_packet[i].fu_sel, rs_issue_packet[i].op_sel, rs_issue_packet[i].rd_mem, rs_issue_packet[i].wr_mem, rs_issue_packet[i].cond_branch, rs_issue_packet[i].uncond_branch, rs_issue_packet[i].halt, rs_issue_packet[i].illegal, rs_issue_packet[i].csr_op, rs_issue_packet[i].valid);
 
             // rs_issue_packet
-            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | r1| r2| pr|rob| ar|   inst  |asl|bsl|fusl|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %x| %x| %2d| %2d| %2d| %2d| %2d| %d| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
+                $fdisplay(pipe_out, "%1d| %h| %h| %2d| %2d| %2d| %2d| %2d| %h| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
                     i, issue_packet[i].NPC, issue_packet[i].PC, rs_issue_packet[i].reg1_pr_idx, rs_issue_packet[i].reg2_pr_idx, issue_packet[i].pr_idx, issue_packet[i].rob_idx, issue_packet[i].ar_idx, issue_packet[i].inst,
                     issue_packet[i].opa_select, issue_packet[i].opb_select, issue_packet[i].fu_select, issue_packet[i].op_sel, issue_packet[i].alu_func, issue_packet[i].mult_func,
                     issue_packet[i].rd_mem, issue_packet[i].wr_mem, issue_packet[i].cond_branch, issue_packet[i].uncond_branch, issue_packet[i].halt, issue_packet[i].illegal, issue_packet[i].csr_op, issue_packet[i].valid
@@ -383,9 +384,9 @@ module testbench;
                     i, issue_packet[i].rs1_value, issue_packet[i].rs2_value);
 
             // issue_fu_packet
-            $fdisplay(pipe_out, " |   NPC   |    PC   | rs1_value| rs2_value| pr|rob| ar|    inst   |asl|bsl|fusl|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
+            $fdisplay(pipe_out, " |   NPC   |    PC   | rs1_value| rs2_value| pr|rob| ar|   inst  |asl|bsl|fusl|opsl|alu|mul|rdm|wrm|cb|ub|halt|ilg|csr_op|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %x| %x|%d|%d| %2d| %2d| %2d| %d| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
+                $fdisplay(pipe_out, "%1d| %h| %h|%d|%d| %2d| %2d| %2d| %h| %2d| %2d|  %d |  %d | %d| %d| %b | %b | %b| %b|  %b | %b |   %b  | %b ", 
                     i, issue_fu_packet[i].NPC, issue_fu_packet[i].PC, issue_fu_packet[i].rs1_value, issue_fu_packet[i].rs2_value, issue_fu_packet[i].pr_idx, issue_fu_packet[i].rob_idx, issue_fu_packet[i].ar_idx, issue_fu_packet[i].inst,
                     issue_fu_packet[i].opa_select, issue_fu_packet[i].opb_select, issue_fu_packet[i].fu_select, issue_fu_packet[i].op_sel, issue_fu_packet[i].alu_func, issue_fu_packet[i].mult_func,
                     issue_fu_packet[i].rd_mem, issue_fu_packet[i].wr_mem, issue_fu_packet[i].cond_branch, issue_fu_packet[i].uncond_branch, issue_fu_packet[i].halt, issue_fu_packet[i].illegal, issue_fu_packet[i].csr_op, issue_fu_packet[i].valid
@@ -395,9 +396,9 @@ module testbench;
         $fdisplay(pipe_out, "EXECUTE");
 
             // fu_packet
-            $fdisplay(pipe_out, " | pr|rob| ar| target_pc|dest_value|rdm|wrm|halt|tkb|vld");
+            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|vld");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%d|%d| %b | %b |  %b | %b | %b ",
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b | %b ",
                     i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch, fu_packet[i].valid);
             // $fdisplay(pipe_out, "");
 
@@ -432,15 +433,15 @@ module testbench;
         $fdisplay(pipe_out, "RETIRE");
             
             // rob_retire_packet
-            $fdisplay(pipe_out, " | t|to|ar|halt|pr|cp| target_pc | dest_value|   NPC  ");
+            $fdisplay(pipe_out, " | t|to|ar|halt|pr|cp|targetPC| dest_value|   NPC  ");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d|%2d|%2d|%2d|  %b | %b| %b| %d| %d|%x", 
+                $fdisplay(pipe_out, "%1d|%2d|%2d|%2d|  %b | %b| %b|%h| %d|%h", 
                     i, rob_retire_packet[i].t_idx, rob_retire_packet[i].told_idx,rob_retire_packet[i].ar_idx,rob_retire_packet[i].halt, rob_retire_packet[i].precise_state_enable, rob_retire_packet[i].complete, rob_retire_packet[i].target_pc, rob_retire_packet[i].dest_value ,rob_retire_packet[i].NPC);
             
             // retire_packet
             $fdisplay(pipe_out, " | t|ar|   NPC  |c");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d|%2d|%2d|%x|%b",
+                $fdisplay(pipe_out, "%1d|%2d|%2d|%h|%b",
                     i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
 
             // retire_freelist_packet
@@ -475,9 +476,9 @@ module testbench;
 
         begin
             cpi = (clock_count + 1.0) / instr_count;
-            $fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+            $fdisplay(cpi_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
                 clock_count+1, instr_count, cpi);
-            $fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
+            $fdisplay(cpi_fileno, "@@  %4.2f ns total time to execute\n@@\n",
                 clock_count*`VERILOG_CLOCK_PERIOD);
         end
     endtask  // task show_clk_count
@@ -495,13 +496,12 @@ module testbench;
         end
     end
 
-    always @(negedge clock) begin
+    always_comb begin
         if(reset) begin
-            //clock_count <= `SD 0;
-            instr_count <= `SD 0;
+            instr_count = 0;
         end else begin
-            //clock_count <= `SD (clock_count + 1);
-            instr_count <= `SD (instr_count + rob_retire_packet[0].complete + rob_retire_packet[1].complete + rob_retire_packet[2].complete);
+            for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
+                instr_count = (instr_count + rob_retire_packet[i].complete);
         end
     end
 
@@ -591,6 +591,7 @@ module testbench;
         $display("STARTING TESTBENCH!\n");
 
         wb_fileno = $fopen("./writeback.out","w");
+        cpi_fileno = $fopen("./cpi_cal.out", "w");
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplay(pipe_out, "superscalar_ways");
         $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
@@ -620,13 +621,13 @@ module testbench;
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
-	//show_mem_with_decimal;
-	show_clk_count;
-	//$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+        // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
+        show_clk_count;
+        //$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #10000
+        #100000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 

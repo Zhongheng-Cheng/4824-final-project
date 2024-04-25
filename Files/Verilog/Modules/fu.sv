@@ -21,37 +21,37 @@ module fu (
 	output FU_RS_PACKET 							   	fu_rs_out,
 	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out
 
-  `ifdef TEST_MODE 
-  , output ISSUE_FU_PACKET 						   		fu_issue_in_mult1_check
-  , output ISSUE_FU_PACKET 						   		fu_issue_in_br_check
-  , output logic 				[`XLEN-1:0] 		   	mult1_a_check
-  , output logic 				[`XLEN-1:0] 		   	mult1_b_check
-  , output logic 				[`XLEN-1:0] 		   	mult1_result_check
-  , output logic 				[4:0] 				   	mult1_finish_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count0_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count1_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count2_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count3_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count4_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count5_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count6_check
-  , output logic 				[`N_FU_UNITS_BITS-1:0] 	count7_check
-  , output logic 									   	pc21_compare_check
-  , output logic 									   	pc20_compare_check
-  , output logic 									   	pc10_compare_check
-  , output logic 									   	br_done_check
-  , output logic 									   	mult1_done_check
-  , output logic 									   	mult2_done_check
-  , output logic 									  	alu1_done_check
-  , output logic 									   	alu2_done_check
-  , output logic 									   	alu3_done_check
-  , output logic 									   	alu2_reg_has_value_check
-  , output logic 									   	alu2_reg_has_value_pre_check
-  , output FU_COMPLETE_PACKET 					   		alu2_reg_packet_check
-  , output FU_COMPLETE_PACKET 					   		fu_complete_out_br_check
-  , output FU_COMPLETE_PACKET 					   		fu_complete_out_alu2_check
-  , output logic 			 	[1:0] 				   	if_state_check
-  `endif
+//   `ifdef TEST_MODE 
+//   , output ISSUE_FU_PACKET 						   		fu_issue_in_mult1_check
+//   , output ISSUE_FU_PACKET 						   		fu_issue_in_br_check
+//   , output logic 				[`XLEN-1:0] 		   	mult1_a_check
+//   , output logic 				[`XLEN-1:0] 		   	mult1_b_check
+//   , output logic 				[`XLEN-1:0] 		   	mult1_result_check
+//   , output logic 				[4:0] 				   	mult1_finish_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count0_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count1_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count2_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count3_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count4_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count5_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count6_check
+//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count7_check
+//   , output logic 									   	pc21_compare_check
+//   , output logic 									   	pc20_compare_check
+//   , output logic 									   	pc10_compare_check
+//   , output logic 									   	br_done_check
+//   , output logic 									   	mult1_done_check
+//   , output logic 									   	mult2_done_check
+//   , output logic 									  	alu1_done_check
+//   , output logic 									   	alu2_done_check
+//   , output logic 									   	alu3_done_check
+//   , output logic 									   	alu2_reg_has_value_check
+//   , output logic 									   	alu2_reg_has_value_pre_check
+//   , output FU_COMPLETE_PACKET 					   		alu2_reg_packet_check
+//   , output FU_COMPLETE_PACKET 					   		fu_complete_out_br_check
+//   , output FU_COMPLETE_PACKET 					   		fu_complete_out_alu2_check
+//   , output logic 			 	[1:0] 				   	if_state_check
+//   `endif
 );
 	FU_COMPLETE_PACKET [2:0] fu_complete_out_unorder;
 
@@ -90,36 +90,36 @@ module fu (
 	logic [4:0] 	  mult1_finish, mult2_finish;
 	logic 			  mult1_start, mult2_start;
 
-`ifdef TEST_MODE
-	assign fu_issue_in_mult1_check = fu_issue_in_mult1;
-	assign mult1_a_check = mult1_a;
-	assign mult1_b_check = mult1_b;
-	assign count0_check = count0;
-	assign count1_check = count1;
-	assign count2_check = count2;
-	assign count3_check = count3;
-	assign count4_check = count4;
-	assign count5_check = count5;
-	assign count6_check = count6;
-	assign count7_check = count7;
-	assign pc21_compare_check = pc21_compare;
-	assign pc20_compare_check = pc20_compare;
-	assign pc10_compare_check = pc10_compare;
-	assign br_done_check = br_done;
-	assign mult1_done_check = mult1_done;
-	assign mult2_done_check = mult2_done;
-	assign mult1_result_check = fu_complete_out_mult1.dest_value;
-	assign mult1_finish_check = mult1_finish;
-	assign alu1_done_check = alu1_done;
-	assign alu2_done_check = alu2_done;
-	assign alu3_done_check = alu3_done;
-	assign alu2_reg_has_value_check = alu2_reg_has_value;
-	assign alu2_reg_has_value_pre_check = alu2_reg_has_value_pre;
-	assign alu2_reg_packet_check = alu2_reg_packet;
-	assign fu_complete_out_br_check = fu_complete_out_br;
-	assign fu_complete_out_alu2_check = fu_complete_out_alu2;
-	assign fu_issue_in_br_check = fu_issue_in_br;
-`endif
+// `ifdef TEST_MODE
+// 	assign fu_issue_in_mult1_check = fu_issue_in_mult1;
+// 	assign mult1_a_check = mult1_a;
+// 	assign mult1_b_check = mult1_b;
+// 	assign count0_check = count0;
+// 	assign count1_check = count1;
+// 	assign count2_check = count2;
+// 	assign count3_check = count3;
+// 	assign count4_check = count4;
+// 	assign count5_check = count5;
+// 	assign count6_check = count6;
+// 	assign count7_check = count7;
+// 	assign pc21_compare_check = pc21_compare;
+// 	assign pc20_compare_check = pc20_compare;
+// 	assign pc10_compare_check = pc10_compare;
+// 	assign br_done_check = br_done;
+// 	assign mult1_done_check = mult1_done;
+// 	assign mult2_done_check = mult2_done;
+// 	assign mult1_result_check = fu_complete_out_mult1.dest_value;
+// 	assign mult1_finish_check = mult1_finish;
+// 	assign alu1_done_check = alu1_done;
+// 	assign alu2_done_check = alu2_done;
+// 	assign alu3_done_check = alu3_done;
+// 	assign alu2_reg_has_value_check = alu2_reg_has_value;
+// 	assign alu2_reg_has_value_pre_check = alu2_reg_has_value_pre;
+// 	assign alu2_reg_packet_check = alu2_reg_packet;
+// 	assign fu_complete_out_br_check = fu_complete_out_br;
+// 	assign fu_complete_out_alu2_check = fu_complete_out_alu2;
+// 	assign fu_issue_in_br_check = fu_issue_in_br;
+// `endif
 
 	always_comb begin
 		fu_issue_in_alu1  = '0;
@@ -307,9 +307,9 @@ module fu (
 			fu_complete_out_alu2_reg  <= `SD '0;
 			fu_complete_out_alu3_reg  <= `SD '0;
 
-		  `ifdef TEST_MODE
-			if_state_check <= `SD '0;
-		  `endif
+		//   `ifdef TEST_MODE
+		// 	if_state_check <= `SD '0;
+		//   `endif
 		end  // if (reset)
 		else begin
 			mult1_reg_has_value_pre	  <= `SD mult1_reg_has_value;
@@ -347,22 +347,22 @@ module fu (
 			if ((count6 > `SUPERSCALAR_WAYS) & alu2_done) begin
 				if (alu2_reg_has_value_pre) begin
 					alu2_reg_packet <= `SD alu2_reg_packet;
-				  `ifdef TEST_MODE	
-				  	if_state_check  <= `SD 2'd1;  
-				  `endif
+				//   `ifdef TEST_MODE	
+				//   	if_state_check  <= `SD 2'd1;  
+				//   `endif
 				end  // if (alu2_reg_has_value_pre)
 				else begin
 					alu2_reg_packet <= `SD fu_complete_out_alu2_reg;
-				  `ifdef TEST_MODE	
-				  	if_state_check  <= `SD 2'd2;  
-				  `endif
+				//   `ifdef TEST_MODE	
+				//   	if_state_check  <= `SD 2'd2;  
+				//   `endif
 				end  // if (~alu2_reg_has_value_pre)
 			end  // if ((count6 > `SUPERSCALAR_WAYS) & alu2_done)
 			else begin
 				alu2_reg_packet <= `SD '0;
-			  `ifdef TEST_MODE	
-			  	if_state_check  <= `SD 2'd3;  
-			  `endif
+			//   `ifdef TEST_MODE	
+			//   	if_state_check  <= `SD 2'd3;  
+			//   `endif
 			end  // if ((count6 <= `SUPERSCALAR_WAYS) | ~alu2_done)
 
 			if ((count7 > `SUPERSCALAR_WAYS) & alu3_done) begin
