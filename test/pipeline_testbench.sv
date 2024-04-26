@@ -367,7 +367,7 @@ module testbench;
 
         $fdisplay(pipe_out, "FETCH");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %10d", 
+                $fdisplay(pipe_out, " %1d | %8h", 
                     i, proc2Imem_addr[i]);
             // proc2Imem_addr | fetch_packet: inst | NPC | PC | valid | fetch_dispatch_packet: inst | NPC | PC | valid");
             $fdisplay(pipe_out, " |      inst     |   NPC   |    PC   |vld");
