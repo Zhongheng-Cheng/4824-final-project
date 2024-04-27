@@ -533,14 +533,14 @@ module testbench;
 
 
     // Task to display # of elapsed clock edges
-    task show_clk_count;
+    task show_clk_count (input int fileno);
         real cpi;
 
         begin
             cpi = (clock_count + 1.0) / instr_count;
-            $fdisplay(cpi_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+            $fdisplay(fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
                 clock_count+1, instr_count, cpi);
-            $fdisplay(cpi_fileno, "@@  %4.2f ns total time to execute\n@@\n",
+            $fdisplay(fileno, "@@  %4.2f ns total time to execute\n@@\n",
                 clock_count*`VERILOG_CLOCK_PERIOD);
         end
     endtask  // task show_clk_count
@@ -611,7 +611,8 @@ module testbench;
                 $display("@@  %t : System halted\n@@", $realtime);
                 $display("@@@ System halted on WFI instruction");
                 $display("@@@\n@@");
-                show_clk_count;
+                show_clk_count(cpi_fileno);
+                show_clk_count(wb_fileno);
                 $fclose(wb_fileno);
                 #1
                 $fclose(pipe_out);
@@ -645,7 +646,7 @@ module testbench;
 
     always@(posedge clock)
 	begin
-		show_clk_count;
+		show_clk_count(cpi_fileno);
 	end
 
     initial begin
@@ -678,13 +679,13 @@ module testbench;
         @(posedge clock);
         $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         `SD;
-        show_clk_count;
+        show_clk_count(cpi_fileno);
         //dump_output();
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
         // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
-        show_clk_count;
+        show_clk_count(cpi_fileno);
         //$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
