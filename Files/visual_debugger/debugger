@@ -37,61 +37,67 @@ def read_pipeline_output(filepath):
         while True:
             line = fo.readline()
             if not line:
-                return cycle # total number of cycles
+                return cycle_n # total number of cycles
             
             line = line.strip('\n')
             if line[:5] == "cycle":
-                cycle = int(line.split()[-1])
+                cycle_n = int(line.split()[-1])
                 for i in data.values():
                     i.append([])
             elif line == "superscalar_ways":
                 superscalar_ways = int(fo.readline())
             elif line == "ROB Table":
-                readnlines(fo, cycle, data["rob"], 33)
+                readnlines(fo, cycle_n, data["rob"], 33)
             elif line == "Physical Register File":
-                readnlines(fo, cycle, data["prf"], 33)
+                readnlines(fo, cycle_n, data["prf"], 33)
             elif line == "Maptable":
-                readnlines(fo, cycle, data["map_table"], 32)
+                readnlines(fo, cycle_n, data["map_table"], 32)
             elif line == "RS Table":
-                readnlines(fo, cycle, data["rs"], 34)
+                readnlines(fo, cycle_n, data["rs"], 34)
             elif line == "FETCH":
-                readnlines(fo, cycle, data["proc2Imem_addr"], superscalar_ways)
-                readnlines(fo, cycle, data['fetch_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['fetch_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data["proc2Imem_addr"], superscalar_ways)
+                readnlines(fo, cycle_n, data['fetch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['fetch_dispatch_packet'], 1 + superscalar_ways)
             elif line == "DISPATCH":
-                readnlines(fo, cycle, data['rob_dispatch_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_fetch_packet'], 2)
-                readnlines(fo, cycle, data['dispatch_rs_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_rob_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_maptable_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['rob_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_fetch_packet'], 2)
+                readnlines(fo, cycle_n, data['dispatch_rs_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_rob_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_maptable_packet'], 1 + superscalar_ways)
             elif line == "ISSUE":
-                readnlines(fo, cycle, data['rs_issue_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['issue_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['issue_fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['rs_issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['issue_fu_packet'], 1 + superscalar_ways)
             elif line == "EXECUTE":
-                readnlines(fo, cycle, data['fu_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['fu_rs_packet'], 6)
-                readnlines(fo, cycle, data["fu_prf_packet"], 8)
+                readnlines(fo, cycle_n, data['fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['fu_rs_packet'], 6)
+                readnlines(fo, cycle_n, data["fu_prf_packet"], 8)
             elif line == "COMPLETE":
-                readnlines(fo, cycle, data["complete_rob_packet"], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['cdb_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data["complete_rob_packet"], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['cdb_packet'], 1 + superscalar_ways)
             elif line == "RETIRE":
-                readnlines(fo, cycle, data['rob_retire_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_freelist_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_wfi_halt'], 1)
-                readnlines(fo, cycle, data['halt'], 1)
+                readnlines(fo, cycle_n, data['rob_retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_freelist_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_wfi_halt'], 1)
+                readnlines(fo, cycle_n, data['halt'], 1)
 
-def readnlines(fo, cycle, lst, n):
+def readnlines(fo, cycle_n, lst, n):
     for _ in range(n):
         line = fo.readline().strip('\n')
-        lst[cycle].append(line)
+        lst[cycle_n].append(line)
     return
 
 class Cycle():
     def __init__(self):
         self.now = 0
         self.limit = [0, 999]
+        self.digits = 3
+        return
+    
+    def set_limit(self, digits):
+        self.limit[1] = int('9' * digits)
+        self.digits = digits
         return
 
     def add_to_cycle(self, num):
@@ -156,7 +162,10 @@ def main(stdscr):
         wins["keys"].addstr(3, 1, "J: prev cycle")
         wins["keys"].addstr(4, 1, "I: +10 cycles")
         wins["keys"].addstr(5, 1, "K: -10 cycles")
-        wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
+        if recording:
+            wins["keys"].addstr(6, 1, f"G: {goto_input[-cycle.digits:]}", curses.A_REVERSE * recording)
+        else:
+            wins["keys"].addstr(6, 1, f"G: go to")
         wins["keys"].addstr(7, 1, "T: end go to ")
         wins["keys"].addstr(8, 1, "B: backspace ")
         wins["keys"].addstr(9, 1, "C: next page ")
@@ -169,7 +178,7 @@ def main(stdscr):
                                 begin_y=11, 
                                 begin_x=0
                                 )
-        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+        wins['cycle'].addstr(1, 1, f"{cycle.now:13}")
         wins['cycle'].refresh()
 
         return
@@ -295,7 +304,7 @@ def main(stdscr):
         elif recording and key_press == ord('t'): # end go-to
             recording = False
             if goto_input:
-                cycle.move_to_cycle(int(goto_input[-3:]))
+                cycle.move_to_cycle(int(goto_input[-cycle.digits:]))
                 goto_input = ""
         elif recording and key_press == ord('b'): # backspace
             goto_input = goto_input[:-1]
@@ -312,6 +321,7 @@ if __name__ == "__main__":
     cycle = Cycle()
     page = Page()
     max_cycle = read_pipeline_output("visual_debugger/pipeline.out")
+    cycle.set_limit(digits=len(str(max_cycle)))
     curses.initscr()
     curses.start_color()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
