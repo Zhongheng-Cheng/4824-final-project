@@ -37,55 +37,55 @@ def read_pipeline_output(filepath):
         while True:
             line = fo.readline()
             if not line:
-                return cycle # total number of cycles
+                return cycle_n # total number of cycles
             
             line = line.strip('\n')
             if line[:5] == "cycle":
-                cycle = int(line.split()[-1])
+                cycle_n = int(line.split()[-1])
                 for i in data.values():
                     i.append([])
             elif line == "superscalar_ways":
                 superscalar_ways = int(fo.readline())
             elif line == "ROB Table":
-                readnlines(fo, cycle, data["rob"], 33)
+                readnlines(fo, cycle_n, data["rob"], 33)
             elif line == "Physical Register File":
-                readnlines(fo, cycle, data["prf"], 33)
+                readnlines(fo, cycle_n, data["prf"], 33)
             elif line == "Maptable":
-                readnlines(fo, cycle, data["map_table"], 32)
+                readnlines(fo, cycle_n, data["map_table"], 32)
             elif line == "RS Table":
-                readnlines(fo, cycle, data["rs"], 34)
+                readnlines(fo, cycle_n, data["rs"], 34)
             elif line == "FETCH":
-                readnlines(fo, cycle, data["proc2Imem_addr"], superscalar_ways)
-                readnlines(fo, cycle, data['fetch_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['fetch_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data["proc2Imem_addr"], superscalar_ways)
+                readnlines(fo, cycle_n, data['fetch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['fetch_dispatch_packet'], 1 + superscalar_ways)
             elif line == "DISPATCH":
-                readnlines(fo, cycle, data['rob_dispatch_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_fetch_packet'], 2)
-                readnlines(fo, cycle, data['dispatch_rs_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_rob_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['dispatch_maptable_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['rob_dispatch_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_fetch_packet'], 2)
+                readnlines(fo, cycle_n, data['dispatch_rs_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_rob_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['dispatch_maptable_packet'], 1 + superscalar_ways)
             elif line == "ISSUE":
-                readnlines(fo, cycle, data['rs_issue_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['issue_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['issue_fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['rs_issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['issue_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['issue_fu_packet'], 1 + superscalar_ways)
             elif line == "EXECUTE":
-                readnlines(fo, cycle, data['fu_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['fu_rs_packet'], 6)
-                readnlines(fo, cycle, data["fu_prf_packet"], 8)
+                readnlines(fo, cycle_n, data['fu_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['fu_rs_packet'], 6)
+                readnlines(fo, cycle_n, data["fu_prf_packet"], 8)
             elif line == "COMPLETE":
-                readnlines(fo, cycle, data["complete_rob_packet"], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['cdb_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data["complete_rob_packet"], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['cdb_packet'], 1 + superscalar_ways)
             elif line == "RETIRE":
-                readnlines(fo, cycle, data['rob_retire_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_freelist_packet'], 1 + superscalar_ways)
-                readnlines(fo, cycle, data['retire_wfi_halt'], 1)
-                readnlines(fo, cycle, data['halt'], 1)
+                readnlines(fo, cycle_n, data['rob_retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_freelist_packet'], 1 + superscalar_ways)
+                readnlines(fo, cycle_n, data['retire_wfi_halt'], 1)
+                readnlines(fo, cycle_n, data['halt'], 1)
 
-def readnlines(fo, cycle, lst, n):
+def readnlines(fo, cycle_n, lst, n):
     for _ in range(n):
         line = fo.readline().strip('\n')
-        lst[cycle].append(line)
+        lst[cycle_n].append(line)
     return
 
 class Cycle():
