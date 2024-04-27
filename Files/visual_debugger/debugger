@@ -92,10 +92,12 @@ class Cycle():
     def __init__(self):
         self.now = 0
         self.limit = [0, 999]
+        self.digits = 3
         return
     
     def set_limit(self, digits):
         self.limit[1] = int('9' * digits)
+        self.digits = digits
         return
 
     def add_to_cycle(self, num):
@@ -160,7 +162,10 @@ def main(stdscr):
         wins["keys"].addstr(3, 1, "J: prev cycle")
         wins["keys"].addstr(4, 1, "I: +10 cycles")
         wins["keys"].addstr(5, 1, "K: -10 cycles")
-        wins["keys"].addstr(6, 1, f"G: go to {goto_input[-3:]:3s}", curses.A_REVERSE * recording)
+        if recording:
+            wins["keys"].addstr(6, 1, f"G: {goto_input[-cycle.digits:]}", curses.A_REVERSE * recording)
+        else:
+            wins["keys"].addstr(6, 1, f"G: go to")
         wins["keys"].addstr(7, 1, "T: end go to ")
         wins["keys"].addstr(8, 1, "B: backspace ")
         wins["keys"].addstr(9, 1, "C: next page ")
@@ -299,7 +304,7 @@ def main(stdscr):
         elif recording and key_press == ord('t'): # end go-to
             recording = False
             if goto_input:
-                cycle.move_to_cycle(int(goto_input[-3:]))
+                cycle.move_to_cycle(int(goto_input[-cycle.digits:]))
                 goto_input = ""
         elif recording and key_press == ord('b'): # backspace
             goto_input = goto_input[:-1]
