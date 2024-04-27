@@ -275,6 +275,7 @@ module testbench;
     function string inst_name(INST value, logic valid);
         if (valid) begin
             casez(value)
+                `NOP: return "NOP";
                 `RV32_LUI: return "LUI";
                 `RV32_AUIPC: return "AUIPC";
                 `RV32_JAL: return "JAL";

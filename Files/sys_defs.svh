@@ -25,7 +25,7 @@
 
 //////////////////////////////////////////////
 
-`define SUPERSCALAR_WAYS	  3
+`define SUPERSCALAR_WAYS	  1
 `define N_PHYS_REG	  	  	  64
 `define N_ARCH_REG	  	  	  32
 `define N_RS_ENTRIES		  16
@@ -196,7 +196,7 @@ typedef enum logic [4:0] {
 // actually, you might have to change this if you change VERILOG_CLOCK_PERIOD
 // JK you don't ^^^
 //
-`define SD #1
+`define SD #0
 
 
 // the RISCV register file zero register, any read of this register always
