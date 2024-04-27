@@ -93,6 +93,10 @@ class Cycle():
         self.now = 0
         self.limit = [0, 999]
         return
+    
+    def set_limit(self, digits):
+        self.limit[1] = int('9' * digits)
+        return
 
     def add_to_cycle(self, num):
         self.now += num
@@ -169,7 +173,7 @@ def main(stdscr):
                                 begin_y=11, 
                                 begin_x=0
                                 )
-        wins['cycle'].addstr(1, 1, f"     {cycle.now:3d}     ")
+        wins['cycle'].addstr(1, 1, f"{cycle.now:13}")
         wins['cycle'].refresh()
 
         return
@@ -312,6 +316,7 @@ if __name__ == "__main__":
     cycle = Cycle()
     page = Page()
     max_cycle = read_pipeline_output("visual_debugger/pipeline.out")
+    cycle.set_limit(digits=len(str(max_cycle)))
     curses.initscr()
     curses.start_color()
     curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)
