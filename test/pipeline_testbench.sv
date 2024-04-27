@@ -521,7 +521,7 @@ module testbench;
 
     endfunction
 
-    always @(posedge clock) begin
+    always @(negedge clock) begin
         if (~reset) begin
             $fdisplay(pipe_out,"cycle %d", clock_count);
             dump_output();
