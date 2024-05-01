@@ -218,8 +218,8 @@ module fu (
 	assign alu1_done  = want_to_complete_alu1_reg;//want_to_complete_alu1_reg;
 	assign alu2_done  = want_to_complete_alu2_reg;//want_to_complete_alu2_reg;
 	assign alu3_done  = want_to_complete_alu3_reg;//want_to_complete_alu3_reg;
-	assign mult1_done = mult_1_finish_reg;//mult1_finish[4];
-	assign mult2_done = mult_2_finish_reg;//mult2_finish[4];
+	assign mult1_done = mult1_finish[4];
+	assign mult2_done = mult2_finish[4];
 	assign br_done    = want_to_complete_br_reg;//want_to_complete_br_reg;
 
     assign fu_complete_out_mult1_tmp = fu_complete_out_mult1;
@@ -304,7 +304,7 @@ module fu (
         end
     end
 
-/*     always_comb begin
+/*  always_comb begin
         fu_complete_out_unorder[0] = (!buffer_empty[4]) ?  fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
         fu_complete_out_unorder[1] = (!buffer_empty[3]) ?  fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
         fu_complete_out_unorder[2] = (!buffer_empty[2]) ?  fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
