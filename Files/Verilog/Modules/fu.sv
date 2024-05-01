@@ -312,7 +312,9 @@ module fu (
     end
 
     always_comb begin
-        fu_complete_out_unorder[0] = (buffer_has_value_pre[4]) ?  fu_complete_out_unorder[0]:fu_complete_out_buffer[0] ;
+        fu_complete_out_unorder[0] = (buffer_has_value_pre[4]) ?  fu_complete_out_unorder[0]:fu_complete_out_mult1_tmp ;
+       // fu_complete_out_unorder[0].valid = (buffer_has_value_pre[4]) ? fu_complete_out_unorder[0].valid : fu_complete_out_buffer[0].valid ;
+
         fu_complete_out_unorder[1] = (buffer_has_value_pre[3]) ?  fu_complete_out_unorder[1]:fu_complete_out_buffer[1] ;
         fu_complete_out_unorder[2] = (buffer_has_value_pre[2]) ?  fu_complete_out_unorder[2]:fu_complete_out_buffer[2] ;
         fu_complete_out_unorder[3] = (buffer_has_value_pre[1]) ?  fu_complete_out_unorder[3]:fu_complete_out_buffer[3] ;
