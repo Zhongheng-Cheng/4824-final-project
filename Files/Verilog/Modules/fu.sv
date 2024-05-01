@@ -1,127 +1,134 @@
-//////////////////////////////////////////////////////////////////////////
-//                                                                      //
-//  Module Name :  fu.sv  		                                        //
-//                                                                      //
-//  Description :  instruction execute (EX) stage of the pipeline;      //
-//                 given the instruction command code CMD, select the   //
-//                 proper input A and B for the ALU, compute the 		// 
-//                 result, and compute the condition for branches, and  //
-//                 pass all the results down the pipeline. MWB          // 
-//                                                                      //
-//////////////////////////////////////////////////////////////////////////
-
 `timescale 1ns/100ps
+
+//define priority selector for fu
+module fu_ps(
+    input [5:0] done_fu,
+    output logic [2:0] done_sel
+);
+    always_comb begin
+        casez (done_fu)
+            6'b1????? : done_sel = 3'd5;
+            6'b01???? : done_sel = 3'd4;
+            6'b001??? : done_sel = 3'd3;
+            6'b0001?? : done_sel = 3'd2;
+            6'b00001? : done_sel = 3'd1;
+            6'b000001 : done_sel = 3'd0;
+            default: done_sel = 3'd0;
+        endcase
+    end
+endmodule
+
+//process the update of the ps
+module fu_process(
+    input clock,
+    input reset,
+    input [5:0] new_done_fu,
+    output logic stall,
+    output logic [2:0] buffer_sel
+);
+
+    logic [5:0] current_done_fu;
+    logic [5:0] next_done_fu;
+    logic [5:0] temp_done;
+
+    fu_ps fu_ps1(
+        .done_fu(next_done_fu),
+        .done_sel(buffer_sel)
+    );
+
+    always_ff @ (posedge clock or posedge reset) begin
+        if(reset) begin
+           // stall <= 1'b0;
+            current_done_fu <= 6'b0;
+            //next_done_fu <= 6'b0;
+        end else begin
+            current_done_fu <= temp_done;
+        end
+    end
+
+    always_comb begin
+        if ((new_done_fu & current_done_fu) != 6'b0) begin
+            stall = 1'b1;
+        end else begin 
+            stall = 1'b0;
+            next_done_fu = (current_done_fu|new_done_fu); //merge the old done with new done
+           // if (|next_done_fu)
+	    temp_done = next_done_fu;
+            temp_done[buffer_sel] = 1'b0;
+        end
+    end
+endmodule
 
 module fu (
 	input 											   	clock,
 	input 											   	reset,
-	input  ISSUE_FU_PACKET 	  	[`SUPERSCALAR_WAYS-1:0] fu_issue_in,
+	input  ISSUE_FU_PACKET 	  	                        fu_issue_in,
 
-	output FU_COMPLETE_PACKET 	[`SUPERSCALAR_WAYS-1:0] fu_complete_out,
+	output FU_COMPLETE_PACKET 	                        fu_complete_out,
 	output FU_RS_PACKET 							   	fu_rs_out,
-	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out
-
-//   `ifdef TEST_MODE 
-//   , output ISSUE_FU_PACKET 						   		fu_issue_in_mult1_check
-//   , output ISSUE_FU_PACKET 						   		fu_issue_in_br_check
-//   , output logic 				[`XLEN-1:0] 		   	mult1_a_check
-//   , output logic 				[`XLEN-1:0] 		   	mult1_b_check
-//   , output logic 				[`XLEN-1:0] 		   	mult1_result_check
-//   , output logic 				[4:0] 				   	mult1_finish_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count0_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count1_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count2_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count3_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count4_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count5_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count6_check
-//   , output logic 				[`N_FU_UNITS_BITS-1:0] 	count7_check
-//   , output logic 									   	pc21_compare_check
-//   , output logic 									   	pc20_compare_check
-//   , output logic 									   	pc10_compare_check
-//   , output logic 									   	br_done_check
-//   , output logic 									   	mult1_done_check
-//   , output logic 									   	mult2_done_check
-//   , output logic 									  	alu1_done_check
-//   , output logic 									   	alu2_done_check
-//   , output logic 									   	alu3_done_check
-//   , output logic 									   	alu2_reg_has_value_check
-//   , output logic 									   	alu2_reg_has_value_pre_check
-//   , output FU_COMPLETE_PACKET 					   		alu2_reg_packet_check
-//   , output FU_COMPLETE_PACKET 					   		fu_complete_out_br_check
-//   , output FU_COMPLETE_PACKET 					   		fu_complete_out_alu2_check
-//   , output logic 			 	[1:0] 				   	if_state_check
-//   `endif
+	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out,
+    output logic                                        stall,
+    logic [2:0]                                         done_fu_sel
 );
-	FU_COMPLETE_PACKET [2:0] fu_complete_out_unorder;
 
-	logic [7:0] want_to_complete;  // LS_1 = 0, LS_2 = 1, ALU_1 = 2, ALU_2 = 3, ALU_3 = 4, MULT_1 = 5, MULT_2 = 6,
-	logic [2:0] count0, count1, count2, count3, count4, count5, count6, count7;
-	logic br_done, ls1_done, ls2_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
-	logic pc21_compare, pc20_compare, pc10_compare;
+    logic br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
+    logic [5:0] done_fu, done_tmp;
+    assign done_fu = {br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done};
+    //logic [2:0] done_fu_sel;
 
-	ISSUE_FU_PACKET fu_issue_in_ls1,   fu_issue_in_ls2;
-	ISSUE_FU_PACKET fu_issue_in_alu1,  fu_issue_in_alu2,  fu_issue_in_alu3;
+    logic [2:0] count0, count1, count2, count3, count4, count5, count6, count7;
+
+    //FU_COMPLETE_PACKET [2:0] fu_complete_out_unorder;
+    logic [7:0] want_to_complete;  // LS_1 = 0, LS_2 = 1, ALU_1 = 2, ALU_2 = 3, ALU_3 = 4, MULT_1 = 5, MULT_2 = 6,
+
+    ISSUE_FU_PACKET fu_issue_in_alu1,  fu_issue_in_alu2,  fu_issue_in_alu3;
 	ISSUE_FU_PACKET fu_issue_in_mult1, fu_issue_in_mult2;
 	ISSUE_FU_PACKET fu_issue_in_br;
 
-	FU_COMPLETE_PACKET fu_complete_out_ls1,   fu_complete_out_ls2;
-	FU_COMPLETE_PACKET fu_complete_out_alu1,  fu_complete_out_alu2,  fu_complete_out_alu3;
+    FU_COMPLETE_PACKET fu_complete_out_ls1,   fu_complete_out_ls2;
+    FU_COMPLETE_PACKET fu_complete_out_alu1,  fu_complete_out_alu2,  fu_complete_out_alu3;
 	FU_COMPLETE_PACKET fu_complete_out_mult1, fu_complete_out_mult2;
 	FU_COMPLETE_PACKET fu_complete_out_br;
+    FU_COMPLETE_PACKET fu_complete_out_alu1_tmp,  fu_complete_out_alu2_tmp,  fu_complete_out_alu3_tmp;
+	FU_COMPLETE_PACKET fu_complete_out_mult1_tmp, fu_complete_out_mult2_tmp;
+	FU_COMPLETE_PACKET fu_complete_out_br_tmp;
+    FU_COMPLETE_PACKET fu_complete_out_buffer [5:0];
+    FU_COMPLETE_PACKET fu_complete_out_unorder [5:0];  //mult1,mult2,alu1,alu2,alu3,br
 
-	FU_COMPLETE_PACKET alu1_reg_packet,  alu2_reg_packet,  alu3_reg_packet;
+    FU_COMPLETE_PACKET alu1_reg_packet,  alu2_reg_packet,  alu3_reg_packet;
 	FU_COMPLETE_PACKET mult1_reg_packet, mult2_reg_packet;
 
-	FU_COMPLETE_PACKET fu_complete_out_alu1_reg, fu_complete_out_alu2_reg, fu_complete_out_alu3_reg;
-	FU_COMPLETE_PACKET fu_complete_out_br_reg;
-
-	logic alu1_reg_has_value,  alu2_reg_has_value,  alu3_reg_has_value;
-	logic mult1_reg_has_value, mult2_reg_has_value;
-
-	logic alu1_reg_has_value_pre,  alu2_reg_has_value_pre,  alu3_reg_has_value_pre;
+    logic alu1_reg_has_value_pre,  alu2_reg_has_value_pre,  alu3_reg_has_value_pre;
 	logic mult1_reg_has_value_pre, mult2_reg_has_value_pre;
 
-	logic want_to_complete_alu1_reg, want_to_complete_alu2_reg, want_to_complete_alu3_reg;
-	logic want_to_complete_br_reg;
+    FU_COMPLETE_PACKET fu_complete_out_alu1_reg, fu_complete_out_alu2_reg, fu_complete_out_alu3_reg;
+	FU_COMPLETE_PACKET fu_complete_out_mult1_reg, fu_complete_out_mult2_reg, fu_complete_out_br_reg;
 
-	logic [`XLEN-1:0] mult1_a, mult1_b, mult2_a, mult2_b;
+	logic want_to_complete_alu1_reg, want_to_complete_alu2_reg, want_to_complete_alu3_reg;
+	logic want_to_complete_br_reg,mult_1_finish_reg,mult_2_finish_reg;
+
+    logic mult1_has_value, mult2_has_value, alu1_has_value, alu2_has_value, alu3_has_value, br_has_value;
+
+    logic [`XLEN-1:0] mult1_a, mult1_b, mult2_a, mult2_b;
 	logic [`XLEN-1:0] mult1_result, mult2_result;
 	logic [4:0] 	  mult1_finish, mult2_finish;
 	logic 			  mult1_start, mult2_start;
+    logic [5:0]       buffer_empty ;
+    logic [5:0]       buffer_empty_mid ;
 
-// `ifdef TEST_MODE
-// 	assign fu_issue_in_mult1_check = fu_issue_in_mult1;
-// 	assign mult1_a_check = mult1_a;
-// 	assign mult1_b_check = mult1_b;
-// 	assign count0_check = count0;
-// 	assign count1_check = count1;
-// 	assign count2_check = count2;
-// 	assign count3_check = count3;
-// 	assign count4_check = count4;
-// 	assign count5_check = count5;
-// 	assign count6_check = count6;
-// 	assign count7_check = count7;
-// 	assign pc21_compare_check = pc21_compare;
-// 	assign pc20_compare_check = pc20_compare;
-// 	assign pc10_compare_check = pc10_compare;
-// 	assign br_done_check = br_done;
-// 	assign mult1_done_check = mult1_done;
-// 	assign mult2_done_check = mult2_done;
-// 	assign mult1_result_check = fu_complete_out_mult1.dest_value;
-// 	assign mult1_finish_check = mult1_finish;
-// 	assign alu1_done_check = alu1_done;
-// 	assign alu2_done_check = alu2_done;
-// 	assign alu3_done_check = alu3_done;
-// 	assign alu2_reg_has_value_check = alu2_reg_has_value;
-// 	assign alu2_reg_has_value_pre_check = alu2_reg_has_value_pre;
-// 	assign alu2_reg_packet_check = alu2_reg_packet;
-// 	assign fu_complete_out_br_check = fu_complete_out_br;
-// 	assign fu_complete_out_alu2_check = fu_complete_out_alu2;
-// 	assign fu_issue_in_br_check = fu_issue_in_br;
-// `endif
+    logic alu1_reg_has_value,  alu2_reg_has_value,  alu3_reg_has_value;
+	logic mult1_reg_has_value, mult2_reg_has_value;
 
-	always_comb begin
+    fu_process fu_process1(
+        .clock(clock),
+        .reset(reset),
+        .new_done_fu(done_fu),
+        .stall(stall),
+        .buffer_sel(done_fu_sel)
+    );
+
+//starting packet transfer
+    always_comb begin
 		fu_issue_in_alu1  = '0;
 		fu_issue_in_alu2  = '0;
 		fu_issue_in_alu3  = '0;
@@ -136,31 +143,27 @@ module fu (
 		mult1_start = '0;
 		mult2_start = '0;
 
-		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
-			case (fu_issue_in[i].fu_select)
-				//LS_1: 
-				//LS_2:
-				ALU_1:   fu_issue_in_alu1 = fu_issue_in[i];
-				ALU_2:   fu_issue_in_alu2 = fu_issue_in[i];
-				ALU_3:   fu_issue_in_alu3 = fu_issue_in[i];
-				MULT_1:  begin
-					mult1_a			  = fu_issue_in[i].rs1_value;
-					mult1_b			  = fu_issue_in[i].rs2_value;
-					mult1_start		  = `TRUE;
-					fu_issue_in_mult1 = fu_issue_in[i];
-				end
-				MULT_2:  begin
-					mult2_a			  = fu_issue_in[i].rs1_value;
-					mult2_b			  = fu_issue_in[i].rs2_value;
-					mult2_start 	  = `TRUE;
-					fu_issue_in_mult2 = fu_issue_in[i];
-				end
-				BRANCH:  fu_issue_in_br = fu_issue_in[i];
-			endcase  // case (fu_issue_in[i].fu_select)
-		end  // for each instruction
-	end  // always_comb  // fu_issue_in
+        case (fu_issue_in.fu_select)
+            ALU_1:   fu_issue_in_alu1 = fu_issue_in;
+            ALU_2:   fu_issue_in_alu2 = fu_issue_in;
+            ALU_3:   fu_issue_in_alu3 = fu_issue_in;
+            MULT_1:  begin
+                mult1_a			  = fu_issue_in.rs1_value;
+                mult1_b			  = fu_issue_in.rs2_value;
+                mult1_start		  = `TRUE;
+                fu_issue_in_mult1 = fu_issue_in;
+            end
+            MULT_2:  begin
+                mult2_a			  = fu_issue_in.rs1_value;
+                mult2_b			  = fu_issue_in.rs2_value;
+                mult2_start 	  = `TRUE;
+                fu_issue_in_mult2 = fu_issue_in;
+            end
+            BRANCH:  fu_issue_in_br = fu_issue_in;
+        endcase  
+	end  
 
-	fu_alu alu1 (
+    fu_alu alu1 (
 		.fu_issue_in(fu_issue_in_alu1),
 		.want_to_complete(want_to_complete[2]),
 		.fu_packet_out(fu_complete_out_alu1)
@@ -210,369 +213,174 @@ module fu (
 		.fu_packet_out(fu_complete_out_br)
 	);
 
-	assign ls1_done   = `FALSE;
+    assign ls1_done   = `FALSE;
 	assign ls2_done   = `FALSE;
-	assign alu1_done  = (want_to_complete_alu1_reg | alu1_reg_has_value_pre);
-	assign alu2_done  = (want_to_complete_alu2_reg | alu2_reg_has_value_pre);
-	assign alu3_done  = (want_to_complete_alu3_reg | alu3_reg_has_value_pre);
-	assign mult1_done = (mult1_finish[4] | mult1_reg_has_value_pre);
-	assign mult2_done = (mult2_finish[4] | mult2_reg_has_value_pre);
-	assign br_done    = want_to_complete_br_reg;
+	assign alu1_done  = want_to_complete_alu1_reg;//want_to_complete_alu1_reg;
+	assign alu2_done  = want_to_complete_alu2_reg;//want_to_complete_alu2_reg;
+	assign alu3_done  = want_to_complete_alu3_reg;//want_to_complete_alu3_reg;
+	assign mult1_done = mult_1_finish_reg;//mult1_finish[4];
+	assign mult2_done = mult_2_finish_reg;//mult2_finish[4];
+	assign br_done    = want_to_complete_br_reg;//want_to_complete_br_reg;
 
-	always_comb begin
+    assign fu_complete_out_mult1_tmp = fu_complete_out_mult1;
+    assign fu_complete_out_mult2_tmp = fu_complete_out_mult2;
+    assign fu_complete_out_alu1_tmp = fu_complete_out_alu1;
+    assign fu_complete_out_alu2_tmp = fu_complete_out_alu2;
+    assign fu_complete_out_alu3_tmp = fu_complete_out_alu3;
+    assign fu_complete_out_br_tmp = fu_complete_out_br;
+
+
+    always_comb begin
 		fu_prf_out = '0;
 
 		if (alu1_done) begin
-			fu_prf_out[2].idx   = fu_complete_out_alu1_reg.pr_idx;
-			fu_prf_out[2].value = fu_complete_out_alu1_reg.dest_value;
-		end  // if (alu1_done)
+			fu_prf_out[2].idx   = fu_complete_out_buffer[2].pr_idx;
+			fu_prf_out[2].value = fu_complete_out_buffer[2].dest_value;
+        end 
 
 		if (alu2_done) begin
-			fu_prf_out[3].idx   = fu_complete_out_alu2_reg.pr_idx;
-			fu_prf_out[3].value = fu_complete_out_alu2_reg.dest_value;
-		end  // if (alu2_done)
+			fu_prf_out[3].idx   = fu_complete_out_buffer[3].pr_idx;
+			fu_prf_out[3].value = fu_complete_out_buffer[3].dest_value;
+		end 
 
 		if (alu3_done) begin
-			fu_prf_out[4].idx = fu_complete_out_alu3_reg.pr_idx;
-			fu_prf_out[4].value = fu_complete_out_alu3_reg.dest_value;
-		end  // if (alu3_done)
+			fu_prf_out[4].idx = fu_complete_out_buffer[4].pr_idx;
+			fu_prf_out[4].value = fu_complete_out_buffer[4].dest_value;
+		end 
 
 		if (mult1_done) begin
-			fu_prf_out[5].idx = fu_complete_out_mult1.pr_idx;
-			fu_prf_out[5].value = fu_complete_out_mult1.dest_value;
-		end  // if (mult1_done)
+			fu_prf_out[5].idx = fu_complete_out_buffer[0].pr_idx;
+			fu_prf_out[5].value = fu_complete_out_buffer[0].dest_value;
+		end 
 
 		if (mult2_done) begin
-			fu_prf_out[6].idx = fu_complete_out_mult2.pr_idx;
-			fu_prf_out[6].value = fu_complete_out_mult2.dest_value;
-		end  // if (mult2_done)
-	end  // always_comb  // fu_prf_out
+			fu_prf_out[6].idx = fu_complete_out_buffer[1].pr_idx;
+			fu_prf_out[6].value = fu_complete_out_buffer[1].dest_value;
+		end
+	end
 
-	always_comb begin
-		count0 = br_done;
-		count1 = count0 + ls1_done;
-		count2 = count1 + ls2_done;
-		count3 = count2 + mult1_done;
-		count4 = count3 + mult2_done;
-		count5 = count4 + alu1_done;
-		count6 = count5 + alu2_done;
-		count7 = count6 + alu3_done;
-	end  // always_comb  // count
-
-	always_comb begin
-		fu_rs_out = '0;
-
-		if (((count3 > `SUPERSCALAR_WAYS) & (mult1_done)) | (|mult1_finish[3:0]))
-			fu_rs_out.mult_1 = `TRUE;
-
-		if (((count4 > `SUPERSCALAR_WAYS) & (mult2_done)) | (|mult2_finish[3:0]))
-			fu_rs_out.mult_2 = `TRUE;
-
-		if ((count5 > `SUPERSCALAR_WAYS) & (alu1_done))
-			fu_rs_out.alu_1 = `TRUE;
-
-		if ((count6 > `SUPERSCALAR_WAYS) & (alu2_done))
-			fu_rs_out.alu_2 = `TRUE;
-
-		if ((count7 > `SUPERSCALAR_WAYS) & (alu3_done))
-			fu_rs_out.alu_3 = `TRUE;
-	end  // always_comb  // fu_rs_out
-
-	always_comb begin
-		mult1_reg_has_value = ((count3 > `SUPERSCALAR_WAYS) & (mult1_done)) ? `TRUE : `FALSE;
-		mult2_reg_has_value = ((count4 > `SUPERSCALAR_WAYS) & (mult2_done)) ? `TRUE : `FALSE;
-		alu1_reg_has_value  = ((count5 > `SUPERSCALAR_WAYS) & (alu1_done))  ? `TRUE : `FALSE;
-		alu2_reg_has_value  = ((count6 > `SUPERSCALAR_WAYS) & (alu2_done))  ? `TRUE : `FALSE;
-		alu3_reg_has_value  = ((count7 > `SUPERSCALAR_WAYS) & (alu3_done))  ? `TRUE : `FALSE;
-	end  // always_comb  // reg_has_value
-
-	always_ff @(posedge clock) begin
-		if (reset) begin
-			mult1_reg_packet		  <= `SD '0;
-			mult2_reg_packet		  <= `SD '0;
-			alu1_reg_packet			  <= `SD '0;
-			alu2_reg_packet			  <= `SD '0;
-			alu3_reg_packet			  <= `SD '0;
-			mult1_reg_has_value_pre	  <= `SD `FALSE;
+    always_ff@(posedge clock or posedge reset) begin
+        if(reset) begin
+           
+            mult1_reg_has_value_pre	  <= `SD `FALSE;
 			mult2_reg_has_value_pre	  <= `SD `FALSE;
 			alu1_reg_has_value_pre	  <= `SD `FALSE;
 			alu2_reg_has_value_pre	  <= `SD `FALSE;
 			alu3_reg_has_value_pre	  <= `SD `FALSE;
-			want_to_complete_br_reg	  <= `SD `FALSE;
+            fu_complete_out_buffer[0] <= '0;
+            fu_complete_out_buffer[1] <= '0;
+            fu_complete_out_buffer[2] <= '0;
+            fu_complete_out_buffer[3] <= '0;
+            fu_complete_out_buffer[4] <= '0;
+            fu_complete_out_buffer[5] <= '0;
+            mult_1_finish_reg <= `SD `FALSE;
+            mult_2_finish_reg <= `SD `FALSE;
+            want_to_complete_br_reg	  <= `SD `FALSE;
 			want_to_complete_alu1_reg <= `SD `FALSE;
 			want_to_complete_alu2_reg <= `SD `FALSE;
 			want_to_complete_alu3_reg <= `SD `FALSE;
-			fu_complete_out_br_reg 	  <= `SD '0;
-			fu_complete_out_alu1_reg  <= `SD '0;
-			fu_complete_out_alu2_reg  <= `SD '0;
-			fu_complete_out_alu3_reg  <= `SD '0;
-
-		//   `ifdef TEST_MODE
-		// 	if_state_check <= `SD '0;
-		//   `endif
-		end  // if (reset)
-		else begin
-			mult1_reg_has_value_pre	  <= `SD mult1_reg_has_value;
+    
+        end else begin
+            
+            mult1_reg_has_value_pre	  <= `SD mult1_reg_has_value;
 			mult2_reg_has_value_pre	  <= `SD mult2_reg_has_value;
 			alu1_reg_has_value_pre	  <= `SD alu1_reg_has_value;
 			alu2_reg_has_value_pre	  <= `SD alu2_reg_has_value;
 			alu3_reg_has_value_pre	  <= `SD alu3_reg_has_value;
-			want_to_complete_br_reg	  <= `SD want_to_complete[7];
+
+            fu_complete_out_buffer[0] <= (!buffer_empty[4]) ? fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
+            fu_complete_out_buffer[1] <= (!buffer_empty[3]) ? fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
+            fu_complete_out_buffer[2] <= (!buffer_empty[2]) ? fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
+            fu_complete_out_buffer[3] <= (!buffer_empty[1]) ? fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
+            fu_complete_out_buffer[4] <= (!buffer_empty[0]) ? fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];          
+            fu_complete_out_buffer[5] <= (!buffer_empty[5]) ? fu_complete_out_br_tmp : fu_complete_out_buffer[5]; 
+            buffer_empty <= done_fu;
+            mult_1_finish_reg <= mult1_finish[4];
+            mult_2_finish_reg <= mult2_finish[4];
+            want_to_complete_br_reg	  <= `SD want_to_complete[7];
 			want_to_complete_alu1_reg <= `SD want_to_complete[2];
 			want_to_complete_alu2_reg <= `SD want_to_complete[3];
 			want_to_complete_alu3_reg <= `SD want_to_complete[4];
-			fu_complete_out_br_reg	  <= `SD fu_complete_out_br;
-			fu_complete_out_alu1_reg  <= `SD fu_complete_out_alu1;
-			fu_complete_out_alu2_reg  <= `SD fu_complete_out_alu2;
-			fu_complete_out_alu3_reg  <= `SD fu_complete_out_alu3;
+        end
+    end
 
-			if ((count3 > `SUPERSCALAR_WAYS) & mult1_done) begin
-				if (mult1_reg_has_value_pre) mult1_reg_packet <= `SD mult1_reg_packet;
-				else						 mult1_reg_packet <= `SD fu_complete_out_mult1;
-			end  // if ((count3 > `SUPERSCALAR_WAYS) & mult1_done)
-			else mult1_reg_packet <= `SD '0;
-
-			if ((count4 > `SUPERSCALAR_WAYS) & mult2_done) begin
-				if (mult2_reg_has_value_pre) mult2_reg_packet <= `SD mult2_reg_packet;
-				else						 mult2_reg_packet <= `SD fu_complete_out_mult2;
-			end  // if ((count4 > `SUPERSCALAR_WAYS) & mult2_done)
-			else mult2_reg_packet <= `SD '0;
-
-			if ((count5 > `SUPERSCALAR_WAYS) & alu1_done) begin
-				if (alu1_reg_has_value_pre) alu1_reg_packet <= `SD alu1_reg_packet;
-				else						alu1_reg_packet <= `SD fu_complete_out_alu1_reg;
-			end  // if ((count5 > `SUPERSCALAR_WAYS) & alu1_done)
-			else alu1_reg_packet <= `SD '0;
-
-			if ((count6 > `SUPERSCALAR_WAYS) & alu2_done) begin
-				if (alu2_reg_has_value_pre) begin
-					alu2_reg_packet <= `SD alu2_reg_packet;
-				//   `ifdef TEST_MODE	
-				//   	if_state_check  <= `SD 2'd1;  
-				//   `endif
-				end  // if (alu2_reg_has_value_pre)
-				else begin
-					alu2_reg_packet <= `SD fu_complete_out_alu2_reg;
-				//   `ifdef TEST_MODE	
-				//   	if_state_check  <= `SD 2'd2;  
-				//   `endif
-				end  // if (~alu2_reg_has_value_pre)
-			end  // if ((count6 > `SUPERSCALAR_WAYS) & alu2_done)
-			else begin
-				alu2_reg_packet <= `SD '0;
-			//   `ifdef TEST_MODE	
-			//   	if_state_check  <= `SD 2'd3;  
-			//   `endif
-			end  // if ((count6 <= `SUPERSCALAR_WAYS) | ~alu2_done)
-
-			if ((count7 > `SUPERSCALAR_WAYS) & alu3_done) begin
-				if (alu3_reg_has_value_pre) alu3_reg_packet <= `SD alu3_reg_packet;
-				else 						alu3_reg_packet <= `SD fu_complete_out_alu3_reg;
-			end  // if ((count7 > `SUPERSCALAR_WAYS) & alu3_done)
-			else alu3_reg_packet <= `SD '0;
-		end  // if (~reset)
-	end  // always_ff @(posedge clock)
+/*     always_comb begin
+        fu_complete_out_unorder[0] = (!buffer_empty[4]) ?  fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
+        fu_complete_out_unorder[1] = (!buffer_empty[3]) ?  fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
+        fu_complete_out_unorder[2] = (!buffer_empty[2]) ?  fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
+        fu_complete_out_unorder[3] = (!buffer_empty[1]) ?  fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
+        fu_complete_out_unorder[4] = (!buffer_empty[0]) ?  fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];
+        fu_complete_out_unorder[5] = (!buffer_empty[5]) ?  fu_complete_out_alu1_tmp : fu_complete_out_buffer[5];
+    end */
 
 	always_comb begin
-		fu_complete_out_unorder = '0;
+		fu_rs_out = '0;
 
-		if (count7 == 2) begin
-			if		((count0 == 3'd1) & br_done) fu_complete_out_unorder[0] = fu_complete_out_br_reg;
-			else if ((count1 == 3'd1) & ls1_done) fu_complete_out_unorder[0] = fu_complete_out_ls1;
-			else if ((count2 == 3'd1) & ls2_done) fu_complete_out_unorder[0] = fu_complete_out_ls2;
-			else if ((count3 == 3'd1) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[0] = mult1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult1;
-			end
-			else if ((count4 == 3'd1) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[0] = mult2_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult2;
-			end
-			else if ((count5 == 3'd1) & alu1_done) begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[0] = alu1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu1_reg;
-			end
-			else begin
-				if (alu2_reg_has_value_pre) fu_complete_out_unorder[0] = alu2_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu2_reg;
-			end
+		if (mult1_done)
+			fu_rs_out.mult_1 = `TRUE;
 
+		if (mult2_done)//mult2_finish[4] |mult2_finish[4:0]))
+			fu_rs_out.mult_2 = `TRUE;
 
-			if 		((count1 == 3'd2) & ls1_done) fu_complete_out_unorder[1] = fu_complete_out_ls1;
-			else if ((count2 == 3'd2) & ls2_done) fu_complete_out_unorder[1] = fu_complete_out_ls2;
-			else if ((count3 == 3'd2) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[1] = mult1_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_mult1;
-			end
-			else if ((count4 == 3'd2) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[1] = mult2_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_mult2;
-			end
-			else if ((count5 == 3'd2) & alu1_done) begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[1] = alu1_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_alu1_reg;
-			end
-			else if ((count6 == 3'd2) & alu2_done) begin
-				if (alu2_reg_has_value_pre) fu_complete_out_unorder[1] = alu2_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_alu2_reg;
-			end
-			else begin
-				if (alu3_reg_has_value_pre) fu_complete_out_unorder[1] = alu3_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_alu3_reg;
-			end
-		end
+		if ((alu1_done))
+			fu_rs_out.alu_1 = `TRUE;
 
-		else if(count7 == 1) begin
-			if		((count0 == 3'd1) & br_done) fu_complete_out_unorder[0] = fu_complete_out_br_reg;
-			else if ((count1 == 3'd1) & ls1_done) fu_complete_out_unorder[0] = fu_complete_out_ls1;
-			else if ((count2 == 3'd1) & ls2_done) fu_complete_out_unorder[0] = fu_complete_out_ls2;
-			else if ((count3 == 3'd1) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[0] = mult1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult1;
-			end
-			else if ((count4 == 3'd1) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[0] = mult2_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult2;
-			end
-			else if ((count5 == 3'd1) & alu1_done) begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[0] = alu1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu1_reg;
-			end
-			else if ((count6 == 3'd1) & alu2_done) begin
-				if (alu2_reg_has_value_pre) fu_complete_out_unorder[0] = alu2_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu2_reg;
-			end
-			else begin
-				if (alu3_reg_has_value_pre) fu_complete_out_unorder[0] = alu3_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu3_reg;
-			end
+		if (alu2_done)
+			fu_rs_out.alu_2 = `TRUE;
 
-		end
-		else if (count7 != 0) begin
-			if		((count0 == 3'd1) & br_done) fu_complete_out_unorder[0] = fu_complete_out_br_reg;
-			else if ((count1 == 3'd1) & ls1_done) fu_complete_out_unorder[0] = fu_complete_out_ls1;
-			else if ((count2 == 3'd1) & ls2_done) fu_complete_out_unorder[0] = fu_complete_out_ls2;
-			else if ((count3 == 3'd1) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[0] = mult1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult1;
-			end
-			else if ((count4 == 3'd1) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[0] = mult2_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_mult2;
-			end
-			else begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[0] = alu1_reg_packet;
-				else fu_complete_out_unorder[0] = fu_complete_out_alu1_reg;
-			end
-
-
-			if 		((count1 == 3'd2) & ls1_done) fu_complete_out_unorder[1] = fu_complete_out_ls1;
-			else if ((count2 == 3'd2) & ls2_done) fu_complete_out_unorder[1] = fu_complete_out_ls2;
-			else if ((count3 == 3'd2) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[1] = mult1_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_mult1;
-			end
-			else if ((count4 == 3'd2) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[1] = mult2_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_mult2;
-			end
-			else if ((count5 == 3'd2) & alu1_done) begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[1] = alu1_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_alu1_reg;
-			end
-			else begin
-				if (alu2_reg_has_value_pre) fu_complete_out_unorder[1] = alu2_reg_packet;
-				else fu_complete_out_unorder[1] = fu_complete_out_alu2_reg;
-			end
-
-
-			if 		((count2 == `SUPERSCALAR_WAYS) & ls2_done) fu_complete_out_unorder[2] = fu_complete_out_ls2;
-			else if ((count3 == `SUPERSCALAR_WAYS) & mult1_done) begin
-				if (mult1_reg_has_value_pre) fu_complete_out_unorder[2] = mult1_reg_packet;
-				else fu_complete_out_unorder[2] = fu_complete_out_mult1;
-			end
-			else if ((count4 == `SUPERSCALAR_WAYS) & mult2_done) begin
-				if (mult2_reg_has_value_pre) fu_complete_out_unorder[2] = mult2_reg_packet;
-				else fu_complete_out_unorder[2] = fu_complete_out_mult2;
-			end
-			else if ((count5 == `SUPERSCALAR_WAYS) & alu1_done) begin
-				if (alu1_reg_has_value_pre) fu_complete_out_unorder[2] = alu1_reg_packet;
-				else fu_complete_out_unorder[2] = fu_complete_out_alu1_reg;
-			end
-			else if ((count6 == `SUPERSCALAR_WAYS) & alu2_done) begin
-				if (alu2_reg_has_value_pre) fu_complete_out_unorder[2] = alu2_reg_packet;
-				else fu_complete_out_unorder[2] = fu_complete_out_alu2_reg;
-			end
-			else begin
-				if (alu3_reg_has_value_pre) fu_complete_out_unorder[2] = alu3_reg_packet;
-				else fu_complete_out_unorder[2] = fu_complete_out_alu3_reg;
-			end
-		end
+		if (done_tmp[2])
+			fu_rs_out.alu_3 = `TRUE;
 	end
 
-	assign pc21_compare = (fu_complete_out_unorder[2].rob_idx > fu_complete_out_unorder[1].rob_idx) ? `TRUE : `FALSE;
-	assign pc20_compare = (fu_complete_out_unorder[2].rob_idx > fu_complete_out_unorder[0].rob_idx) ? `TRUE : `FALSE;
-	assign pc10_compare = (fu_complete_out_unorder[1].rob_idx > fu_complete_out_unorder[0].rob_idx) ? `TRUE : `FALSE;
+    always_comb begin
+        //buffer_empty = buffer_empty_mid;
+        done_tmp = buffer_empty;
+      //  buffer_empty = done_fu;
+        casez(done_fu_sel) 
+            3'd4 : begin
+                fu_complete_out = fu_complete_out_buffer[0];
+                //fu_rs_out.mult_1 = `TRUE;
+                done_tmp[4] = 0;
+            end
+            3'd3 : begin
+                fu_complete_out = fu_complete_out_buffer[1];
+                //fu_rs_out.mult_2 = `TRUE;
+                done_tmp[3] = 0;
+            end
+            3'd2 : begin
+                fu_complete_out = fu_complete_out_buffer[2];
+                //fu_rs_out.alu_1 = `TRUE;  
+                done_tmp[2] = 0;
+            end
+            3'd1 : begin
+                fu_complete_out = fu_complete_out_buffer[3];
+                //fu_rs_out.alu_2 = `TRUE; 
+                done_tmp[1] = 0;
+            end
+            3'd0 : begin
+                fu_complete_out = fu_complete_out_buffer[4]; 
+                //fu_rs_out.alu_3 = `TRUE; 
+                done_tmp[0] = 0;
+            end 
+            3'd5 : begin
+                fu_complete_out = fu_complete_out_buffer[5];
+                done_tmp[5] = 0; 
+            end
+            default : begin
+                fu_complete_out = '0;
+                done_tmp = '0;
+                //buffer_empty = '0;
+                
+            end
+        endcase
+    end
+    
+endmodule
 
-	always_comb begin
-		fu_complete_out = '0;
-		
-		if(count7 == 2) begin
-			if(pc10_compare) begin
-				fu_complete_out[2] = fu_complete_out_unorder[2];
-				fu_complete_out[1] = fu_complete_out_unorder[1];
-				fu_complete_out[0] = fu_complete_out_unorder[0];
-			end
-			else begin
-				fu_complete_out[2] = fu_complete_out_unorder[2];
-				fu_complete_out[1] = fu_complete_out_unorder[0];
-				fu_complete_out[0] = fu_complete_out_unorder[1];
-			end
-		end
-		else if(count7 == 1) begin
-			fu_complete_out[2] = fu_complete_out_unorder[2];
-			fu_complete_out[1] = fu_complete_out_unorder[1];
-			fu_complete_out[0] = fu_complete_out_unorder[0];
-		end
-		else begin
-			case({pc21_compare, pc20_compare, pc10_compare})
-				3'b111: begin
-					fu_complete_out[2] = fu_complete_out_unorder[2];
-					fu_complete_out[1] = fu_complete_out_unorder[1];
-					fu_complete_out[0] = fu_complete_out_unorder[0];
-				end
-				3'b110: begin
-					fu_complete_out[2] = fu_complete_out_unorder[2];
-					fu_complete_out[1] = fu_complete_out_unorder[0];
-					fu_complete_out[0] = fu_complete_out_unorder[1];
-				end
-				3'b011: begin
-					fu_complete_out[2] = fu_complete_out_unorder[1];
-					fu_complete_out[1] = fu_complete_out_unorder[2];
-					fu_complete_out[0] = fu_complete_out_unorder[0];
-				end
-				3'b100: begin
-					fu_complete_out[2] = fu_complete_out_unorder[0];
-					fu_complete_out[1] = fu_complete_out_unorder[2];
-					fu_complete_out[0] = fu_complete_out_unorder[1];
-				end
-				3'b001: begin
-					fu_complete_out[2] = fu_complete_out_unorder[1];
-					fu_complete_out[1] = fu_complete_out_unorder[0];
-					fu_complete_out[0] = fu_complete_out_unorder[2];
-				end
-				3'b000: begin
-					fu_complete_out[2] = fu_complete_out_unorder[0];
-					fu_complete_out[1] = fu_complete_out_unorder[1];
-					fu_complete_out[0] = fu_complete_out_unorder[2];
-				end
-				default: begin
-					fu_complete_out[2] = fu_complete_out_unorder[2];
-					fu_complete_out[1] = fu_complete_out_unorder[1];
-					fu_complete_out[0] = fu_complete_out_unorder[0];
-				end
 
-			endcase
-		end
-	end
-endmodule  // fu
+
+
+
+
+
+

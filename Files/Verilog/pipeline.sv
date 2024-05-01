@@ -91,7 +91,8 @@ module pipeline (
     output RETIRE_PACKET [`SUPERSCALAR_WAYS-1:0] 			retire_packet,
     output RETIRE_FREELIST_PACKET [`SUPERSCALAR_WAYS-1:0] 	retire_freelist_packet,
     output logic   [`XLEN-1:0]                              target_pc, // target_pc pc for precise state
-    output logic                                            retire_wfi_halt
+    output logic                                            retire_wfi_halt,
+	output logic [2:0]                                         	done_fu_sel
     
     `ifdef TEST_MODE
     , output ROB_PACKET [`N_ROB_ENTRIES-1:0]                rob_table_display
@@ -131,6 +132,10 @@ module pipeline (
 	logic clear;
 
 	assign clear = (reset | br_recover_enable);
+
+	//stall from fu to dispatch
+	logic 													stall;
+	
 
 	// Display output
   `ifdef TEST_MODE
@@ -176,6 +181,7 @@ module pipeline (
 		.rs_cdb_in(cdb_packet),
 		.rs_dispatch_in(dispatch_rs_packet),
 		.rs_fu_in(fu_rs_packet),
+		.stall(stall),
 
 		// Outputs
 		.rs_issue_out(rs_issue_packet),
@@ -355,6 +361,7 @@ module pipeline (
         .dispatch_fetch_in(fetch_dispatch_packet),
         .branch_flush_en(br_recover_enable),
     	.cdb_in(cdb_packet),
+		.stall_from_fu(stall),
 
 		// Outputs
         .dispatch_rs_out(dispatch_rs_packet),
@@ -435,7 +442,9 @@ module pipeline (
 		// Outputs
 		.fu_rs_out(fu_rs_packet),
 		.fu_complete_out(fu_packet),
-		.fu_prf_out(fu_prf_packet)
+		.fu_prf_out(fu_prf_packet),
+		.stall(stall),
+		.done_fu_sel(done_fu_sel)
 	);
 
 

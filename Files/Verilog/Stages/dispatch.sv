@@ -18,6 +18,7 @@ module dispatch (
     input  FREELIST_DISPATCH_PACKET                         dispatch_freelist_in,   // free physical registers
     input  FETCH_DISPATCH_PACKET    [`SUPERSCALAR_WAYS-1:0] dispatch_fetch_in,
     input  CDB_PACKET                                 	    cdb_in,
+    input                                                   stall_from_fu,
 
     output DISPATCH_FETCH_PACKET                            dispatch_fetch_out,     // for fetch stage
     output DISPATCH_FREELIST_PACKET                         dispatch_freelist_out,  // for freelist
@@ -94,7 +95,7 @@ module dispatch (
     logic [`SUPERSCALAR_WAYS_BITS-1:0] first_stall_idx;
     logic                              stall_en;
     
-    assign dispatch_fetch_out.enable          = stall_en;
+    assign dispatch_fetch_out.enable          = stall_en | stall_from_fu;
     assign dispatch_fetch_out.first_stall_idx = first_stall_idx;
 
     always_comb begin

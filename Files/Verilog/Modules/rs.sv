@@ -14,6 +14,7 @@ module rs (
     input  CDB_PACKET                                 rs_cdb_in,
     input  FU_RS_PACKET                               rs_fu_in,
     input  DISPATCH_RS_PACKET [`SUPERSCALAR_WAYS-1:0] rs_dispatch_in,
+    input                                             stall,
 
     output RS_DISPATCH_PACKET                         rs_dispatch_out,  //struct stall
     output RS_ISSUE_PACKET    [`SUPERSCALAR_WAYS-1:0] rs_issue_out
@@ -139,13 +140,19 @@ module rs (
 
         for (int i = 0; i < `N_RS_ENTRIES; i++) begin
             if (tag_ready_plus[i]) begin
+                
+                 if (stall) begin
+                    fu_ready_status  = `FALSE;
+                end else begin 
+                    
                 case (rs_entries[i].fu_sel)
                     ALU_1: begin
                         if (~alu_1_selected & ~rs_fu_in.alu_1) begin
                             fu_ready_status[i] = `TRUE;
                             alu_1_selected     = `TRUE;
                             issue_fu_sel[i]    = ALU_1;
-                        end  // if the alu_1 fu is free and not already assigned
+                        end
+                             // if the alu_1 fu is free and not already assigned
                         else if (~alu_2_selected & ~rs_fu_in.alu_2) begin
                             fu_ready_status[i] = `TRUE;
                             alu_2_selected     = `TRUE;
@@ -181,10 +188,12 @@ module rs (
                         end  // if the branch_1 fu is free and not already assigned
                     end  // case (rs_entries[i].fu_sel == BRANCH)
                     default: fu_ready_status[i] = `FALSE;
-                endcase  // case (rs_entries[i].fu_sel)
+                endcase 
+                end
+                end// case (rs_entries[i].fu_sel)
             end  // if the instruction is ready to issue
         end  // for each rs entry
-    end  // always_comb  // fu_select
+      // always_comb  // fu_select
 
     logic [`N_RS_ENTRIES-1:0]                        entry_ready;
     logic [`N_RS_ENTRIES-1:0]                        entry_ready_reverse_3;
