@@ -78,7 +78,7 @@ module mult #(parameter NUM_STAGE = 4) (
 			default:	 product = 0;
 		endcase  // case (mult_func_reg)
 	end  // always_comb  // product
-  
+    
 	genvar i; generate
 		for (i = 0; i < NUM_STAGE; i++) begin : mstage
 			mult_stage #(.NUM_STAGE(NUM_STAGE)) mult_stage_0 (

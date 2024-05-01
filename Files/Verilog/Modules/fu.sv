@@ -113,8 +113,8 @@ module fu (
 	logic [`XLEN-1:0] mult1_result, mult2_result;
 	logic [4:0] 	  mult1_finish, mult2_finish;
 	logic 			  mult1_start, mult2_start;
-    logic [5:0]       buffer_empty ;
-    logic [5:0]       buffer_empty_mid ;
+    logic [5:0]       buffer_has_value ;
+    logic [5:0]       buffer_has_value_pre ;
 
     logic alu1_reg_has_value,  alu2_reg_has_value,  alu3_reg_has_value;
 	logic mult1_reg_has_value, mult2_reg_has_value;
@@ -215,9 +215,9 @@ module fu (
 
     assign ls1_done   = `FALSE;
 	assign ls2_done   = `FALSE;
-	assign alu1_done  = want_to_complete_alu1_reg;//want_to_complete_alu1_reg;
-	assign alu2_done  = want_to_complete_alu2_reg;//want_to_complete_alu2_reg;
-	assign alu3_done  = want_to_complete_alu3_reg;//want_to_complete_alu3_reg;
+	assign alu1_done  = want_to_complete_alu1_reg;
+	assign alu2_done  = want_to_complete_alu2_reg;
+	assign alu3_done  = want_to_complete_alu3_reg;
 	assign mult1_done = mult1_finish[4];
 	assign mult2_done = mult2_finish[4];
 	assign br_done    = want_to_complete_br_reg;//want_to_complete_br_reg;
@@ -288,13 +288,20 @@ module fu (
 			alu2_reg_has_value_pre	  <= `SD alu2_reg_has_value;
 			alu3_reg_has_value_pre	  <= `SD alu3_reg_has_value;
 
-            fu_complete_out_buffer[0] <= (!buffer_empty[4]) ? fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
-            fu_complete_out_buffer[1] <= (!buffer_empty[3]) ? fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
-            fu_complete_out_buffer[2] <= (!buffer_empty[2]) ? fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
-            fu_complete_out_buffer[3] <= (!buffer_empty[1]) ? fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
-            fu_complete_out_buffer[4] <= (!buffer_empty[0]) ? fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];          
-            fu_complete_out_buffer[5] <= (!buffer_empty[5]) ? fu_complete_out_br_tmp : fu_complete_out_buffer[5]; 
-            buffer_empty <= done_fu;
+            /* fu_complete_out_buffer[0] <= (!buffer_has_value[4]) ? fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
+            fu_complete_out_buffer[1] <= (!buffer_has_value[3]) ? fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
+            fu_complete_out_buffer[2] <= (!buffer_has_value[2]) ? fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
+            fu_complete_out_buffer[3] <= (!buffer_has_value[1]) ? fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
+            fu_complete_out_buffer[4] <= (!buffer_has_value[0]) ? fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];          
+            fu_complete_out_buffer[5] <= (!buffer_has_value[5]) ? fu_complete_out_br_tmp : fu_complete_out_buffer[5];  */
+            fu_complete_out_buffer[0] <= fu_complete_out_mult1_tmp ;
+            fu_complete_out_buffer[1] <= fu_complete_out_mult2_tmp ;
+            fu_complete_out_buffer[2] <= fu_complete_out_alu1_tmp ;
+            fu_complete_out_buffer[3] <= fu_complete_out_alu2_tmp ;
+            fu_complete_out_buffer[4] <= fu_complete_out_alu3_tmp ;          
+            fu_complete_out_buffer[5] <= fu_complete_out_br_tmp ;
+            buffer_has_value <= done_fu;
+            buffer_has_value_pre <= done_tmp;
             mult_1_finish_reg <= mult1_finish[4];
             mult_2_finish_reg <= mult2_finish[4];
             want_to_complete_br_reg	  <= `SD want_to_complete[7];
@@ -304,14 +311,14 @@ module fu (
         end
     end
 
-/*  always_comb begin
-        fu_complete_out_unorder[0] = (!buffer_empty[4]) ?  fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
-        fu_complete_out_unorder[1] = (!buffer_empty[3]) ?  fu_complete_out_mult2_tmp : fu_complete_out_buffer[1];
-        fu_complete_out_unorder[2] = (!buffer_empty[2]) ?  fu_complete_out_alu1_tmp : fu_complete_out_buffer[2];
-        fu_complete_out_unorder[3] = (!buffer_empty[1]) ?  fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
-        fu_complete_out_unorder[4] = (!buffer_empty[0]) ?  fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];
-        fu_complete_out_unorder[5] = (!buffer_empty[5]) ?  fu_complete_out_alu1_tmp : fu_complete_out_buffer[5];
-    end */
+    always_comb begin
+        fu_complete_out_unorder[0] = (buffer_has_value_pre[4]) ?  fu_complete_out_unorder[0]:fu_complete_out_buffer[0] ;
+        fu_complete_out_unorder[1] = (buffer_has_value_pre[3]) ?  fu_complete_out_unorder[1]:fu_complete_out_buffer[1] ;
+        fu_complete_out_unorder[2] = (buffer_has_value_pre[2]) ?  fu_complete_out_unorder[2]:fu_complete_out_buffer[2] ;
+        fu_complete_out_unorder[3] = (buffer_has_value_pre[1]) ?  fu_complete_out_unorder[3]:fu_complete_out_buffer[3] ;
+        fu_complete_out_unorder[4] = (buffer_has_value_pre[0]) ?  fu_complete_out_unorder[4]:fu_complete_out_buffer[4] ;
+        fu_complete_out_unorder[5] = (buffer_has_value_pre[5]) ?  fu_complete_out_unorder[5]:fu_complete_out_buffer[5] ;
+    end 
 
 	always_comb begin
 		fu_rs_out = '0;
@@ -333,43 +340,43 @@ module fu (
 	end
 
     always_comb begin
-        //buffer_empty = buffer_empty_mid;
-        done_tmp = buffer_empty;
-      //  buffer_empty = done_fu;
+        //buffer_has_value = buffer_has_value_mid;
+        done_tmp = buffer_has_value;
+      //  buffer_has_value = done_fu;
         casez(done_fu_sel) 
             3'd4 : begin
-                fu_complete_out = fu_complete_out_buffer[0];
+                fu_complete_out = fu_complete_out_unorder[0];
                 //fu_rs_out.mult_1 = `TRUE;
                 done_tmp[4] = 0;
             end
             3'd3 : begin
-                fu_complete_out = fu_complete_out_buffer[1];
+                fu_complete_out = fu_complete_out_unorder[1];
                 //fu_rs_out.mult_2 = `TRUE;
                 done_tmp[3] = 0;
             end
             3'd2 : begin
-                fu_complete_out = fu_complete_out_buffer[2];
+                fu_complete_out = fu_complete_out_unorder[2];
                 //fu_rs_out.alu_1 = `TRUE;  
                 done_tmp[2] = 0;
             end
             3'd1 : begin
-                fu_complete_out = fu_complete_out_buffer[3];
+                fu_complete_out = fu_complete_out_unorder[3];
                 //fu_rs_out.alu_2 = `TRUE; 
                 done_tmp[1] = 0;
             end
             3'd0 : begin
-                fu_complete_out = fu_complete_out_buffer[4]; 
+                fu_complete_out = fu_complete_out_unorder[4]; 
                 //fu_rs_out.alu_3 = `TRUE; 
                 done_tmp[0] = 0;
             end 
             3'd5 : begin
-                fu_complete_out = fu_complete_out_buffer[5];
+                fu_complete_out = fu_complete_out_unorder[5];
                 done_tmp[5] = 0; 
             end
             default : begin
                 fu_complete_out = '0;
                 done_tmp = '0;
-                //buffer_empty = '0;
+                //buffer_has_value = '0;
                 
             end
         endcase
