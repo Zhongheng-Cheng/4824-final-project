@@ -141,9 +141,9 @@ module rs (
         for (int i = 0; i < `N_RS_ENTRIES; i++) begin
             if (tag_ready_plus[i]) begin
                 
-                 if (stall) begin
+             /*     if (stall) begin
                     fu_ready_status  = `FALSE;
-                end else begin 
+                end else begin  */
                     
                 case (rs_entries[i].fu_sel)
                     ALU_1: begin
@@ -190,7 +190,7 @@ module rs (
                     default: fu_ready_status[i] = `FALSE;
                 endcase 
                 end
-                end// case (rs_entries[i].fu_sel)
+                // case (rs_entries[i].fu_sel)
             end  // if the instruction is ready to issue
         end  // for each rs entry
       // always_comb  // fu_select

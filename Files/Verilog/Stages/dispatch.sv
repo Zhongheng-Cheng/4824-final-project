@@ -95,7 +95,7 @@ module dispatch (
     logic [`SUPERSCALAR_WAYS_BITS-1:0] first_stall_idx;
     logic                              stall_en;
     
-    assign dispatch_fetch_out.enable          = stall_en | stall_from_fu;
+    assign dispatch_fetch_out.enable          = stall_en ;//| stall_from_fu;
     assign dispatch_fetch_out.first_stall_idx = first_stall_idx;
 
     always_comb begin

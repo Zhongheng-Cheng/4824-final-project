@@ -300,7 +300,7 @@ module fu (
             fu_complete_out_buffer[3] <= fu_complete_out_alu2_tmp ;
             fu_complete_out_buffer[4] <= fu_complete_out_alu3_tmp ;          
             fu_complete_out_buffer[5] <= fu_complete_out_br_tmp ;
-            buffer_has_value <= done_fu;
+            //buffer_has_value <= done_fu;
             buffer_has_value_pre <= done_tmp;
             mult_1_finish_reg <= mult1_finish[4];
             mult_2_finish_reg <= mult2_finish[4];
@@ -341,7 +341,7 @@ module fu (
 
     always_comb begin
         //buffer_has_value = buffer_has_value_mid;
-        done_tmp = buffer_has_value;
+        done_tmp = done_fu;
       //  buffer_has_value = done_fu;
         casez(done_fu_sel) 
             3'd4 : begin
