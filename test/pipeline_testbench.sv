@@ -697,7 +697,7 @@ module testbench;
         //        clock_count+1, instr_count, 3.24);
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #100000
+        #1000000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 

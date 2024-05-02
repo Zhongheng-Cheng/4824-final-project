@@ -141,10 +141,10 @@ module rs (
         for (int i = 0; i < `N_RS_ENTRIES; i++) begin
             if (tag_ready_plus[i]) begin
                 
-/*                 if (stall) begin
+                 if (stall) begin
                     fu_ready_status  = `FALSE;
                 end else begin  
-                     */
+                     
                 case (rs_entries[i].fu_sel)
                     ALU_1: begin
                         if (~alu_1_selected & ~rs_fu_in.alu_1) begin
@@ -189,7 +189,7 @@ module rs (
                     end  // case (rs_entries[i].fu_sel == BRANCH)
                     default: fu_ready_status[i] = `FALSE;
                 endcase 
-                
+                end
                 end// case (rs_entries[i].fu_sel)
             end  // if the instruction is ready to issue
         end  // for each rs entry
@@ -238,6 +238,7 @@ module rs (
     end  // always_comb  // issue_packet
 
     always_comb begin
+        
         for (int i = 0; i < `SUPERSCALAR_WAYS; i++)begin
             rs_issue_out[i].valid         = issue_packet[i].valid;
             rs_issue_out[i].fu_sel        = issue_packet[i].fu_sel;

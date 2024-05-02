@@ -77,6 +77,14 @@ module fu (
     output logic [5:0]                                  done_fu_out
 );
 
+    logic [`XLEN-1:0] mult1_a, mult1_b, mult2_a, mult2_b;
+	logic [`XLEN-1:0] mult1_result, mult2_result;
+	logic [4:0] 	  mult1_finish, mult2_finish;
+	logic 			  mult1_start, mult2_start;
+    logic [5:0]       buffer_has_value ;
+    logic [5:0]       buffer_has_value_pre ;
+    logic stall_not_use;
+
     logic br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
     logic [5:0] done_fu, done_tmp;
     assign done_fu = {br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done};
@@ -116,12 +124,6 @@ module fu (
 
     logic mult1_has_value, mult2_has_value, alu1_has_value, alu2_has_value, alu3_has_value, br_has_value;
 
-    logic [`XLEN-1:0] mult1_a, mult1_b, mult2_a, mult2_b;
-	logic [`XLEN-1:0] mult1_result, mult2_result;
-	logic [4:0] 	  mult1_finish, mult2_finish;
-	logic 			  mult1_start, mult2_start;
-    logic [5:0]       buffer_has_value ;
-    logic [5:0]       buffer_has_value_pre ;
 
     logic alu1_reg_has_value,  alu2_reg_has_value,  alu3_reg_has_value;
 	logic mult1_reg_has_value, mult2_reg_has_value;
@@ -130,7 +132,7 @@ module fu (
         .clock(clock),
         .reset(reset),
         .new_done_fu(done_fu),
-        .stall(stall),
+        .stall(stall_not_use),
         .buffer_sel(done_fu_sel)
     );
 
@@ -236,6 +238,23 @@ module fu (
     assign fu_complete_out_alu3_tmp = fu_complete_out_alu3;
     assign fu_complete_out_br_tmp = fu_complete_out_br;
 
+    always_comb begin
+		count0 = br_done;
+		count1 = count0 + ls1_done;
+		count2 = count1 + ls2_done;
+		count3 = count2 + mult1_done;
+		count4 = count3 + mult2_done;
+		count5 = count4 + alu1_done;
+		count6 = count5 + alu2_done;
+		count7 = count6 + alu3_done;
+	end
+
+    always_comb begin
+        if(count7 > 1)
+            stall = 1;
+            else
+            stall = 0;
+    end
 
     always_comb begin
 		fu_prf_out = '0;
@@ -301,12 +320,12 @@ module fu (
             fu_complete_out_buffer[3] <= (!buffer_has_value[1]) ? fu_complete_out_alu2_tmp : fu_complete_out_buffer[3];
             fu_complete_out_buffer[4] <= (!buffer_has_value[0]) ? fu_complete_out_alu3_tmp : fu_complete_out_buffer[4];          
             fu_complete_out_buffer[5] <= (!buffer_has_value[5]) ? fu_complete_out_br_tmp : fu_complete_out_buffer[5];  */
-            fu_complete_out_buffer[0] <= fu_complete_out_mult1_tmp ;
-            fu_complete_out_buffer[1] <= fu_complete_out_mult2_tmp ;
-            fu_complete_out_buffer[2] <= fu_complete_out_alu1_tmp ;
-            fu_complete_out_buffer[3] <= fu_complete_out_alu2_tmp ;
-            fu_complete_out_buffer[4] <= fu_complete_out_alu3_tmp ;          
-            fu_complete_out_buffer[5] <= fu_complete_out_br_tmp ;
+            fu_complete_out_buffer[0] <= (mult1_finish[4]) ? fu_complete_out_mult1_tmp : fu_complete_out_buffer[0];
+            fu_complete_out_buffer[1] <= (mult2_finish[4]) ? fu_complete_out_mult2_tmp : fu_complete_out_buffer[1] ;
+            fu_complete_out_buffer[2] <= (want_to_complete[2]) ? fu_complete_out_alu1_tmp : fu_complete_out_buffer[2] ;
+            fu_complete_out_buffer[3] <= (want_to_complete[3]) ? fu_complete_out_alu2_tmp : fu_complete_out_buffer[3] ;
+            fu_complete_out_buffer[4] <= (want_to_complete[4]) ? fu_complete_out_alu3_tmp : fu_complete_out_buffer[4] ;          
+            fu_complete_out_buffer[5] <= (want_to_complete[7]) ? fu_complete_out_br_tmp : fu_complete_out_buffer[5] ;
             //buffer_has_value <= done_fu;
             buffer_has_value_pre <= done_tmp;
             mult_1_finish_reg <= mult1_finish[4];
@@ -332,19 +351,19 @@ module fu (
 	always_comb begin
 		fu_rs_out = '0;
 
-		if (mult1_done)
+		if ((count3 > 1 & mult1_done)|(|mult1_finish[3:0])) 
 			fu_rs_out.mult_1 = `TRUE;
 
-		if (mult2_done)//mult2_finish[4] |mult2_finish[4:0]))
+		if ((count4 > 1 & mult2_done)|(|mult2_finish[3:0]))//mult2_finish[4] |mult2_finish[4:0]))
 			fu_rs_out.mult_2 = `TRUE;
 
-		if ((alu1_done & mult1_done))
+		if ((count5 > 1 & alu1_done))
 			fu_rs_out.alu_1 = `TRUE;
 
-		if (alu2_done & alu1_done)
+		if (count6 > 1 & alu2_done)
 			fu_rs_out.alu_2 = `TRUE;
 
-		if (done_tmp[2] & mult1_done)
+		if (count7 > 1 & alu3_done)
 			fu_rs_out.alu_3 = `TRUE;
 	end
 
@@ -384,7 +403,7 @@ module fu (
             end
             default : begin
                 fu_complete_out = '0;
-                done_tmp = '0;
+                done_tmp = 000000;
                 //buffer_has_value = '0;
                 
             end
