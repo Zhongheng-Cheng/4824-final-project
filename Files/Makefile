@@ -721,7 +721,7 @@ verdi_syn:	syn_simv novas.rc
 	./syn_simv -gui=verdi
 
 clean:
-	rm -rf *simv *simv.daidir csrc vcs.key *program.out *.key *simv.vdb .fsm.sch.verilog.xml
+	rm -rf *simv *simv.daidir csrc vcs.key *.out *.key *simv.vdb .fsm.sch.verilog.xml
 	rm -rf vis_simv vis_simv.daidir test_results.out
 	rm -rf dve* inter.vpd DVEfiles
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out visual_debugger/pipeline.out writeback.out vc_hdrs.h
