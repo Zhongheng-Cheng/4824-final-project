@@ -29,7 +29,16 @@ for source_file in programs/*.{s,c}; do
     echo -e "Running \e[33m${program}\e[0m"
     make ${program}.out > /dev/null
 
-    # Writeback output Test
+    # System halt Test
+
+    grep "System halted on WFI instruction" output/${program}.out > /dev/null
+    if [ $? -eq 0 ]; then
+        echo -e "halt test:    \e[32mPASS\e[0m"
+    else
+        echo -e "halt test:    \e[31mFAIL\e[0m"
+    fi
+
+    # # Writeback output Test
     
     # # compare the test output and ground truth output
     # diff ${TEST_DIR}/output/${program}.wb ${GROUND_TRUTH_DIR}/output/${program}.wb > /dev/null
