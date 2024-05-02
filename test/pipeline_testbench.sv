@@ -148,6 +148,7 @@ module testbench;
 
     logic retire_wfi_halt;
     logic [2:0]                                         	done_fu_sel;
+    logic [5:0]  done_fu_out;
 
     // Debug display
     `ifdef TEST_MODE
@@ -238,7 +239,8 @@ module testbench;
 		            .retire_wfi_halt(retire_wfi_halt),
 
                     //done_fu_sel from fu
-                    .done_fu_sel(done_fu_sel)
+                    .done_fu_sel(done_fu_sel),
+                    .done_fu_out(done_fu_out)
 
                     // Testmode display
                     `ifdef TEST_MODE
@@ -463,10 +465,10 @@ module testbench;
         $fdisplay(pipe_out, "EXECUTE");
 
             // fu_packet
-            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|sel|vld");
+            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|sel|vld| done");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b| %d | %b  ",
-                    i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch,  done_fu_sel, fu_packet[i].valid );
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b| %d | %b | %6b ",
+                    i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch,  done_fu_sel, fu_packet[i].valid , done_fu_out);
             // $fdisplay(pipe_out, "");
 
             // fu_rs_packet

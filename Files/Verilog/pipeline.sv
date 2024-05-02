@@ -92,7 +92,8 @@ module pipeline (
     output RETIRE_FREELIST_PACKET [`SUPERSCALAR_WAYS-1:0] 	retire_freelist_packet,
     output logic   [`XLEN-1:0]                              target_pc, // target_pc pc for precise state
     output logic                                            retire_wfi_halt,
-	output logic [2:0]                                         	done_fu_sel
+	output logic [2:0]                                         	done_fu_sel,
+	output logic [5:0]										done_fu_out
     
     `ifdef TEST_MODE
     , output ROB_PACKET [`N_ROB_ENTRIES-1:0]                rob_table_display
@@ -444,7 +445,8 @@ module pipeline (
 		.fu_complete_out(fu_packet),
 		.fu_prf_out(fu_prf_packet),
 		.stall(stall),
-		.done_fu_sel(done_fu_sel)
+		.done_fu_sel(done_fu_sel),
+		.done_fu_out(done_fu_out)
 	);
 
 

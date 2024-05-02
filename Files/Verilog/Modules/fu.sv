@@ -47,15 +47,20 @@ module fu_process(
     end
 
     always_comb begin
+        
         if ((new_done_fu & current_done_fu) != 6'b0) begin
             stall = 1'b1;
+            next_done_fu = (current_done_fu|new_done_fu); //merge the old done with new done
+           // temp_done = next_done_fu;
+            temp_done[buffer_sel] = 1'b0;
+            temp_done = temp_done|new_done_fu;
         end else begin 
             stall = 1'b0;
             next_done_fu = (current_done_fu|new_done_fu); //merge the old done with new done
-           // if (|next_done_fu)
-	    temp_done = next_done_fu;
+            temp_done = next_done_fu;
             temp_done[buffer_sel] = 1'b0;
-        end
+            //temp_done = temp_done|new_done_fu;
+    end
     end
 endmodule
 
@@ -68,12 +73,14 @@ module fu (
 	output FU_RS_PACKET 							   	fu_rs_out,
 	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out,
     output logic                                        stall,
-    logic [2:0]                                         done_fu_sel
+    output logic [2:0]                                  done_fu_sel,
+    output logic [5:0]                                  done_fu_out
 );
 
     logic br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
     logic [5:0] done_fu, done_tmp;
     assign done_fu = {br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done};
+    assign done_fu_out = done_tmp;
     //logic [2:0] done_fu_sel;
 
     logic [2:0] count0, count1, count2, count3, count4, count5, count6, count7;
@@ -315,7 +322,7 @@ module fu (
         fu_complete_out_unorder[0] = (buffer_has_value_pre[4]) ?  fu_complete_out_unorder[0]:fu_complete_out_mult1_tmp ;
        // fu_complete_out_unorder[0].valid = (buffer_has_value_pre[4]) ? fu_complete_out_unorder[0].valid : fu_complete_out_buffer[0].valid ;
 
-        fu_complete_out_unorder[1] = (buffer_has_value_pre[3]) ?  fu_complete_out_unorder[1]:fu_complete_out_buffer[1] ;
+        fu_complete_out_unorder[1] = (buffer_has_value_pre[3]) ?  fu_complete_out_unorder[1]:fu_complete_out_mult2_tmp ;
         fu_complete_out_unorder[2] = (buffer_has_value_pre[2]) ?  fu_complete_out_unorder[2]:fu_complete_out_buffer[2] ;
         fu_complete_out_unorder[3] = (buffer_has_value_pre[1]) ?  fu_complete_out_unorder[3]:fu_complete_out_buffer[3] ;
         fu_complete_out_unorder[4] = (buffer_has_value_pre[0]) ?  fu_complete_out_unorder[4]:fu_complete_out_buffer[4] ;
@@ -331,13 +338,13 @@ module fu (
 		if (mult2_done)//mult2_finish[4] |mult2_finish[4:0]))
 			fu_rs_out.mult_2 = `TRUE;
 
-		if ((alu1_done))
+		if ((alu1_done & mult1_done))
 			fu_rs_out.alu_1 = `TRUE;
 
-		if (alu2_done)
+		if (alu2_done & alu1_done)
 			fu_rs_out.alu_2 = `TRUE;
 
-		if (done_tmp[2])
+		if (done_tmp[2] & mult1_done)
 			fu_rs_out.alu_3 = `TRUE;
 	end
 
