@@ -300,9 +300,24 @@ export CLOCK_PERIOD   = 12	# TODO: You will need to make match SYNTH_CLOCK_PERIO
 
 .PHONY: vis
 
+output:
+	mkdir -p output
+
 # OUTPUTS = $(PROGRAMS:programs/%=output/%)
-%.out: programs/%.mem simv
-	./simv +MEMORY=$< | tee program.out
+
+
+
+# # run a program and produce output files
+# $(OUTPUTS:=.out): output/%.out: programs/%.mem simv | output
+# 	./simv +MEMORY=$< 
+
+# # Allow us to type 'make <my_program>.out' instead of 'make output/<my_program>.out'
+# ./%.out: output/%.out ;
+# .PHONY: ./%.out
+
+# OUTPUTS = $(PROGRAMS:programs/%=output/%)
+%.out: simv output
+	./simv +FILENAME=$* | tee output/$@
 .PHONY: %.out
 
 # Default target:

@@ -3,7 +3,7 @@
 module testbench;
     // //Internal Wires
     logic [63:0] tb_mem [`MEM_64BIT_LINES - 1:0];
-    string program_memory_file;
+    string filename;
     //counter used for when pipeline infinite loops, forces termination
     logic [63:0] debug_counter;
     
@@ -660,8 +660,15 @@ module testbench;
         $dumpvars;
         $display("STARTING TESTBENCH!\n");
 
-        wb_fileno = $fopen("./writeback.out","w");
-        cpi_fileno = $fopen("./cpi_cal.out", "w");
+        if ($value$plusargs("FILENAME=%s", filename)) begin
+            $display("Loading memory file: %s", filename);
+        end else begin
+            $display("Loading default memory file: btest1.mem");
+            filename = "btest1";
+        end
+
+        wb_fileno = $fopen({"output/", filename, ".wb"},"w");
+        cpi_fileno = $fopen({"output/", filename, ".cpi"}, "w");
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplay(pipe_out, "superscalar_ways");
         $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
@@ -675,13 +682,8 @@ module testbench;
         reset = 1'b1;
         @(posedge clock);
         @(posedge clock);
-        if ($value$plusargs("MEMORY=%s", program_memory_file)) begin
-            $display("Loading memory file: %s", program_memory_file);
-        end else begin
-            $display("Loading default memory file: btest1.mem");
-            program_memory_file = "btest1.mem";
-        end
-        $readmemh(program_memory_file, tb_mem);
+        
+        $readmemh({"programs/", filename, ".mem"}, tb_mem);
 	@(posedge clock);
         @(posedge clock);
         $fdisplayh(wb_fileno, "%p",tb_mem[1]);
