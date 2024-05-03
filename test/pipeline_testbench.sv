@@ -619,7 +619,7 @@ module testbench;
                 $display("@@@ System halted on WFI instruction");
                 $display("@@@\n@@");
                 show_clk_count(cpi_fileno);
-                show_clk_count(wb_fileno);
+                // show_clk_count(wb_fileno);
                 $fclose(wb_fileno);
                 #1
                 $fclose(pipe_out);
@@ -672,13 +672,13 @@ module testbench;
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplay(pipe_out, "superscalar_ways");
         $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
-        $fdisplayh(wb_fileno, "%p",tb_mem[1]);
+        // $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         enable = 1;
         clock = 1;
 
         reset = 1'b0;
         // Pulse the reset signal
-        $fdisplay(wb_fileno, "@@\n@@\n@@  %t  Asserting System reset......", $realtime);
+        // $fdisplay(wb_fileno, "@@\n@@\n@@  %t  Asserting System reset......", $realtime);
         reset = 1'b1;
         @(posedge clock);
         @(posedge clock);
@@ -686,13 +686,14 @@ module testbench;
         $readmemh({"programs/", filename, ".mem"}, tb_mem);
 	@(posedge clock);
         @(posedge clock);
-        $fdisplayh(wb_fileno, "%p",tb_mem[1]);
+        // $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         `SD;
         show_clk_count(cpi_fileno);
         //dump_output();
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
+        $display("@@@ Unified Memory contents hex on left, decimal on right: ");
         // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
         show_clk_count(cpi_fileno);
 /*        repeat (1000) begin
