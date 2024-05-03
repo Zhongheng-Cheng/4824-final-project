@@ -727,6 +727,7 @@ clean:
 	rm -rf synsimv synsimv.daidir csrc vcdplus.vpd vcs.key synprog.out visual_debugger/pipeline.out writeback.out vc_hdrs.h
 	rm -f *.elf *.dump debug_bin #.mem
 	rm -rf verdi* novas* *fsdb*
+	rm -rf output/
 
 nuke:	clean
 	rm -rf synth/*.vg synth/*.rep synth/*.ddc synth/*.chk synth/*.log synth/*.syn
