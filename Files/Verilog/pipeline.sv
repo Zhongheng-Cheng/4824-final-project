@@ -488,6 +488,9 @@ module pipeline (
 		.cdb_out(cdb_packet)
 	);
 
+	assign br_recover_enable = complete_rob_packet[0].precise_state_enable;
+	assign target_pc = complete_rob_packet[0].target_pc;
+
 
 	//////////////////////////////////////////////////
 	//                                              //
@@ -495,6 +498,9 @@ module pipeline (
 	//                                              //
 	//////////////////////////////////////////////////
     assign halt = retire_wfi_halt;
+
+	logic br_recover_enable_r;
+	logic [`XLEN-1:0] target_pc_r;
 
 
 	retire retire_0 (
@@ -506,8 +512,8 @@ module pipeline (
         .recovery_maptable(recovery_maptable),
         .retire_out(retire_packet),
         .retire_freelist_out(retire_freelist_packet),
-        .br_recover_enable(br_recover_enable),
-        .target_pc(target_pc),
+        .br_recover_enable(br_recover_enable_r),
+        .target_pc(target_pc_r),
         .wfi_halt(retire_wfi_halt)
     );
 endmodule  // module pipeline

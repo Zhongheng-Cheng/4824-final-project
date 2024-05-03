@@ -46,7 +46,7 @@ module fetch (
 			fetch_dispatch_out[i].valid = ~branch_flush_en; 
 
 			// this mux is because the Imem gives us 64 bits not 32 bits
-			fetch_dispatch_out[i].inst  = PC_reg[i][2] ? Imem2proc_data[i][(2*`XLEN)-1:`XLEN] : 
+			fetch_dispatch_out[i].inst  = (!PC_reg[i][2]) ? Imem2proc_data[i][(2*`XLEN)-1:`XLEN] : 
 										  Imem2proc_data[i][`XLEN:0];
         end  // for each instruction
 	end  // always_comb  // fetch_dispatch_out
