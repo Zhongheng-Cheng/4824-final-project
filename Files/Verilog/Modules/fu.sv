@@ -2,11 +2,11 @@
 
 //define priority selector for fu
 module fu_ps(
-    input [5:0] done_fu,
+    input [5:0] done_fu_ps_in,
     output logic [2:0] done_sel
 );
     always_comb begin
-        casez (done_fu)
+        casez (done_fu_ps_in)
             6'b1????? : done_sel = 3'd5;
             6'b01???? : done_sel = 3'd4;
             6'b001??? : done_sel = 3'd3;
@@ -22,44 +22,41 @@ endmodule
 module fu_process(
     input clock,
     input reset,
-    input [5:0] new_done_fu,
-    output logic stall,
+    input [5:0] done_fu_processs_in,
     output logic [2:0] buffer_sel
 );
 
     logic [5:0] current_done_fu;
+    logic [5:0] merged_done_fu;
     logic [5:0] next_done_fu;
-    logic [5:0] temp_done;
 
     fu_ps fu_ps1(
-        .done_fu(next_done_fu),
+        .done_fu_ps_in(merged_done_fu),
         .done_sel(buffer_sel)
     );
 
     always_ff @ (posedge clock or posedge reset) begin
         if(reset) begin
-           // stall <= 1'b0;
             current_done_fu <= 6'b0;
-            //next_done_fu <= 6'b0;
         end else begin
-            current_done_fu <= temp_done;
+            current_done_fu <= next_done_fu;
         end
     end
 
     always_comb begin
         
-        if ((new_done_fu & current_done_fu) != 6'b0) begin
-            stall = 1'b1;
-            next_done_fu = (current_done_fu|new_done_fu); //merge the old done with new done
-           // temp_done = next_done_fu;
-            temp_done[buffer_sel] = 1'b0;
-            temp_done = temp_done|new_done_fu;
+        merged_done_fu = (current_done_fu|done_fu_processs_in); //merge the old done with new done
+
+        if ((done_fu_processs_in & current_done_fu) != 6'b0) begin
+
+            next_done_fu[buffer_sel] = 1'b0;
+            next_done_fu = next_done_fu|done_fu_processs_in;
+
         end else begin 
-            stall = 1'b0;
-            next_done_fu = (current_done_fu|new_done_fu); //merge the old done with new done
-            temp_done = next_done_fu;
-            temp_done[buffer_sel] = 1'b0;
-            //temp_done = temp_done|new_done_fu;
+
+            next_done_fu = merged_done_fu;
+            next_done_fu[buffer_sel] = 1'b0;
+
     end
     end
 endmodule
@@ -72,7 +69,7 @@ module fu (
 	output FU_COMPLETE_PACKET 	                        fu_complete_out,
 	output FU_RS_PACKET 							   	fu_rs_out,
 	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out,
-    output logic                                        stall,
+    output logic                                        stall_fu_2_dispatch,
     output logic [2:0]                                  done_fu_sel,
     output logic [5:0]                                  done_fu_out
 );
@@ -83,7 +80,7 @@ module fu (
 	logic 			  mult1_start, mult2_start;
     logic [5:0]       buffer_has_value ;
     logic [5:0]       buffer_has_value_pre ;
-    logic stall_not_use;
+
 
     logic br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
     logic [5:0] done_fu, done_tmp;
@@ -131,8 +128,8 @@ module fu (
     fu_process fu_process1(
         .clock(clock),
         .reset(reset),
-        .new_done_fu(done_fu),
-        .stall(stall_not_use),
+        .done_fu_processs_in(done_fu),
+
         .buffer_sel(done_fu_sel)
     );
 
@@ -251,9 +248,9 @@ module fu (
 
     always_comb begin
         if(count7 > 1)
-            stall = 1;
+            stall_fu_2_dispatch = 1;
             else
-            stall = 0;
+            stall_fu_2_dispatch = 0;
     end
 
     always_comb begin
@@ -354,7 +351,7 @@ module fu (
 		if ((count3 > 1 & mult1_done)|(|mult1_finish[3:0])) 
 			fu_rs_out.mult_1 = `TRUE;
 
-		if ((count4 > 1 & mult2_done)|(|mult2_finish[3:0]))//mult2_finish[4] |mult2_finish[4:0]))
+		if ((count4 > 1 & mult2_done)|(|mult2_finish[3:0]))
 			fu_rs_out.mult_2 = `TRUE;
 
 		if ((count5 > 1 & alu1_done))
@@ -365,6 +362,8 @@ module fu (
 
 		if (count7 > 1 & alu3_done)
 			fu_rs_out.alu_3 = `TRUE;
+        
+        
 	end
 
     always_comb begin

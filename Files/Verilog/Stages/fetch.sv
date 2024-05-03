@@ -29,7 +29,7 @@ module fetch (
 	always_ff @(posedge clock) begin
 		if (reset) begin
 			for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-				PC_reg[i] <= `SD (i * `XLEN'd4);
+				PC_reg[i] <= `SD (i * `XLEN'd4 );
 		end
 		else PC_reg <= `SD next_PC;
 	end  // always_ff @(posedge clock)
@@ -55,8 +55,8 @@ module fetch (
 		// if there's a taken branch, set next_PC according to its target
 		// else, increment the PC by 4*(SUPERSCALAR_WAYS-num_stalls)
         for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
-			next_PC[i] = branch_flush_en		  ? (target_pc + (i * `XLEN'd4)) : 
-						 fetch_dispatch_in.enable ? (PC_reg[fetch_dispatch_in.first_stall_idx] + (i * `XLEN'd4)) :
+			next_PC[i] = branch_flush_en		  ? (target_pc + (i * `XLEN'd4) ) : 
+						 fetch_dispatch_in.enable ? (PC_reg[fetch_dispatch_in.first_stall_idx] + (i * `XLEN'd4)  ) :
 						 PC_reg[i] + (`SUPERSCALAR_WAYS * `XLEN'd4);
         end  // for each instruction
 	end  // always_comb  // next_PC

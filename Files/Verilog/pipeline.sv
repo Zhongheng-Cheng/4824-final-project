@@ -135,7 +135,7 @@ module pipeline (
 	assign clear = (reset | br_recover_enable);
 
 	//stall from fu to dispatch
-	logic 													stall;
+	logic 													stall_fu_2_dispatch;
 	
 
 	// Display output
@@ -182,7 +182,7 @@ module pipeline (
 		.rs_cdb_in(cdb_packet),
 		.rs_dispatch_in(dispatch_rs_packet),
 		.rs_fu_in(fu_rs_packet),
-		.stall(stall),
+		.stall(stall_fu_2_dispatch),
 
 		// Outputs
 		.rs_issue_out(rs_issue_packet),
@@ -362,7 +362,7 @@ module pipeline (
         .dispatch_fetch_in(fetch_dispatch_packet),
         .branch_flush_en(br_recover_enable),
     	.cdb_in(cdb_packet),
-		.stall_from_fu(stall),
+		.stall_from_fu(stall_fu_2_dispatch),
 
 		// Outputs
         .dispatch_rs_out(dispatch_rs_packet),
@@ -444,7 +444,7 @@ module pipeline (
 		.fu_rs_out(fu_rs_packet),
 		.fu_complete_out(fu_packet),
 		.fu_prf_out(fu_prf_packet),
-		.stall(stall),
+		.stall_fu_2_dispatch(stall_fu_2_dispatch),
 		.done_fu_sel(done_fu_sel),
 		.done_fu_out(done_fu_out)
 	);
@@ -487,19 +487,22 @@ module pipeline (
 		.complete_rob_out(complete_rob_packet),
 		.cdb_out(cdb_packet)
 	);
-	logic branch_pre;
-	always_comb begin
-		branch_pre = 0;
-		if (br_recover_enable) begin
-			branch_pre = 1;
-		end
-	end
-	always_ff @(posedge clock) begin
-		br_recover_enable <= complete_rob_packet[0].precise_state_enable;
-		target_pc         <= complete_rob_packet[0].target_pc;
-		if (branch_pre) br_recover_enable <= 0;
 
-	end
+
+	// logic branch_pre;
+	// always_comb begin
+	// 	branch_pre = 0;
+	// 	if (br_recover_enable) begin
+	// 		branch_pre = 1;
+	// 	end
+	// end
+	// always_ff @(posedge clock) begin
+	// 	br_recover_enable <= complete_rob_packet[0].precise_state_enable;
+	// 	target_pc         <= complete_rob_packet[0].target_pc;
+	// 	if (branch_pre) br_recover_enable <= 0;
+
+	// end
+
 	//////////////////////////////////////////////////
 	//                                              //
 	//                 Retire-Stage                 //
@@ -519,8 +522,12 @@ module pipeline (
         .recovery_maptable(recovery_maptable),
         .retire_out(retire_packet),
         .retire_freelist_out(retire_freelist_packet),
-        .br_recover_enable(br_recover_enable_r),
-        .target_pc(target_pc_r),
+
+        // .br_recover_enable(br_recover_enable_r),
+        // .target_pc(target_pc_r),
+		.br_recover_enable(br_recover_enable),
+        .target_pc(target_pc),
+
         .wfi_halt(retire_wfi_halt)
     );
 endmodule  // module pipeline
