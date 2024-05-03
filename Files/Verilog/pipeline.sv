@@ -487,10 +487,17 @@ module pipeline (
 		.complete_rob_out(complete_rob_packet),
 		.cdb_out(cdb_packet)
 	);
-
+	logic branch_pre;
+	always_comb begin
+		branch_pre = 0;
+		if (br_recover_enable) begin
+			branch_pre = 1;
+		end
+	end
 	always_ff @(posedge clock) begin
 		br_recover_enable <= complete_rob_packet[0].precise_state_enable;
 		target_pc         <= complete_rob_packet[0].target_pc;
+		if (branch_pre) br_recover_enable <= 0;
 
 	end
 	//////////////////////////////////////////////////

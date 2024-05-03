@@ -695,11 +695,15 @@ module testbench;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
         // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
         show_clk_count(cpi_fileno);
-        //$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
-        //        clock_count+1, instr_count, 3.24);
+/*        repeat (1000) begin
+            #100
+            $display(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+                clock_count+1, instr_count, 3.24);
+
+        end    */
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #100000
+        #1000000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 
