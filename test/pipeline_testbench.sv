@@ -351,7 +351,7 @@ module testbench;
 
             $fdisplay(pipe_out, "RS Table");
                 // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
-                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst     |alu|mul  ");
+                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst     |alu|mul");
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
                     $fdisplay(pipe_out, "%2d| %x| %x| %2d| %2d| %2d| %2d| %2d|%5s: %h| %d| %d",
                         i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, inst_name(rs_table[i].inst, rs_table[i].valid), rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
@@ -465,9 +465,9 @@ module testbench;
         $fdisplay(pipe_out, "EXECUTE");
 
             // fu_packet
-            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|sel|vld| done");
+            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|sel|vld| done ");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b| %d | %b | %6b ",
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b | %d | %b |%6b",
                     i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch,  done_fu_sel, fu_packet[i].valid , done_fu_out);
             // $fdisplay(pipe_out, "");
 
