@@ -560,6 +560,9 @@ typedef struct packed{
 	logic 							halt;         // instruction is a halt
     logic 							take_branch;  // instruction is a taken branch
     logic 							valid;        // instruction is valid
+
+	logic [`XLEN-1:0] opa;				  // oba
+	logic [`XLEN-1:0] opb;				  // opb
 } FU_COMPLETE_PACKET;
 
 typedef struct packed {

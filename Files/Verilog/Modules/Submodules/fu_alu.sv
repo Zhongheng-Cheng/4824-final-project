@@ -37,6 +37,8 @@ module fu_alu (
 	assign fu_packet_out.take_branch = (fu_issue_in.uncond_branch | (fu_issue_in.cond_branch & cond));
 	assign fu_packet_out.target_pc   = (fu_issue_in.cond_branch | fu_issue_in.uncond_branch) ? 
 									   alu_result : 0;
+	assign fu_packet_out.opa         = opa_mux_out;
+	assign fu_packet_out.opb         = opb_mux_out;
 
 	always_comb begin
 		case (fu_issue_in.opa_select)
