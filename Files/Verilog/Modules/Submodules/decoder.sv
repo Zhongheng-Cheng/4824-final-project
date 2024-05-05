@@ -90,6 +90,7 @@ module decoder (
                     fu_sel        = BRANCH;
                     op_sel        = br;
                     dest_reg      = inst.r.rd;
+                    sourc_reg_1 = inst.r.rs1;
                     opa_select    = OPA_IS_RS1;
                     opb_select    = OPB_IS_I_IMM;
                     uncond_branch = `TRUE;

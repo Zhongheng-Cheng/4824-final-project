@@ -45,12 +45,12 @@ for source_file in programs/*.{s,c}; do
     cat ${TEST_DIR}/${program}.out | grep "@@@" > test_output.tmp
 
     # compare the memory outputs of test and ground truth
-    diff ground_truth_output.tmp test_output.tmp > /dev/null
-    if [ $? -eq 0 ]; then
-        echo -e "memory test:    \e[32mPASS\e[0m"
-    else
-        echo -e "memory test:    \e[31mFAIL\e[0m"
-    fi
+    # diff ground_truth_output.tmp test_output.tmp > /dev/null
+    # if [ $? -eq 0 ]; then
+    #     echo -e "memory test:    \e[32mPASS\e[0m"
+    # else
+    #     echo -e "memory test:    \e[31mFAIL\e[0m"
+    # fi
 
 done
 

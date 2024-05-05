@@ -510,8 +510,8 @@ module pipeline (
 	//////////////////////////////////////////////////
     assign halt = retire_wfi_halt;
 
-	logic br_recover_enable_r;
-	logic [`XLEN-1:0] target_pc_r;
+	// logic br_recover_enable_r;
+	// logic [`XLEN-1:0] target_pc_r;
 
 	retire retire_0 (
 		// Inputs 
