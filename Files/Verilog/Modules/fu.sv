@@ -65,13 +65,17 @@ module fu (
 	input 											   	clock,
 	input 											   	reset,
 	input  ISSUE_FU_PACKET 	  	                        fu_issue_in,
+    input logic [`XLEN-1:0]                             mem2proc_data,     // Data sent to Data memory
 
 	output FU_COMPLETE_PACKET 	                        fu_complete_out,
 	output FU_RS_PACKET 							   	fu_rs_out,
 	output FU_PRF_PACKET 	  	[6:0] 				   	fu_prf_out,
     output logic                                        stall_fu_2_dispatch,
     output logic [2:0]                                  done_fu_sel,
-    output logic [5:0]                                  done_fu_out
+    output logic [5:0]                                  done_fu_out,
+    output logic [1:0]                                  proc2Dmem_fu_command, // The memory command
+    //output MEM_SIZE          proc2Dmem_size,    // Size of data to read or write
+    output logic [`XLEN-1:0] proc2Dmem_fu_addr    // Address sent to Data memory
 );
 
     logic [`XLEN-1:0] mult1_a, mult1_b, mult2_a, mult2_b;
@@ -82,7 +86,7 @@ module fu (
     logic [5:0]       buffer_has_value_pre ;
 
 
-    logic br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
+    logic ls1_done, ls2_done, br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done;
     logic [5:0] done_fu, done_tmp;
     assign done_fu = {br_done, mult1_done, mult2_done, alu1_done, alu2_done, alu3_done};
     assign done_fu_out = done_tmp;
@@ -124,6 +128,8 @@ module fu (
 
     logic alu1_reg_has_value,  alu2_reg_has_value,  alu3_reg_has_value;
 	logic mult1_reg_has_value, mult2_reg_has_value;
+
+    logic [`XLEN-1:0]                             mem2proc_fu_data;
 
     fu_process fu_process1(
         .clock(clock),
@@ -219,7 +225,7 @@ module fu (
 		.fu_packet_out(fu_complete_out_br)
 	);
 
-    assign ls1_done   = `FALSE;
+    assign ls1_done   = (alu1_done & fu_complete_out_buffer[2].rd_mem) | (alu2_done & fu_complete_out_buffer[3].rd_mem) | (alu3_done & fu_complete_out_buffer[4].rd_mem);
 	assign ls2_done   = `FALSE;
 	assign alu1_done  = want_to_complete_alu1_reg;
 	assign alu2_done  = want_to_complete_alu2_reg;
@@ -253,22 +259,29 @@ module fu (
             stall_fu_2_dispatch = 0;
     end
 
+    assign proc2Dmem_fu_command = (ls1_done) ? BUS_LOAD : BUS_NONE;
+	assign mem2proc_fu_data = mem2proc_data;
+     
+
     always_comb begin
 		fu_prf_out = '0;
-
 		if (alu1_done) begin
 			fu_prf_out[2].idx   = fu_complete_out_buffer[2].pr_idx;
-			fu_prf_out[2].value = fu_complete_out_buffer[2].dest_value;
+			fu_prf_out[2].value = fu_complete_out_buffer[2].rd_mem ? mem2proc_fu_data : fu_complete_out_buffer[2].dest_value;
+            proc2Dmem_fu_addr = fu_complete_out_buffer[2].dest_value;
         end 
 
 		if (alu2_done) begin
 			fu_prf_out[3].idx   = fu_complete_out_buffer[3].pr_idx;
-			fu_prf_out[3].value = fu_complete_out_buffer[3].dest_value;
+			fu_prf_out[3].value = fu_complete_out_buffer[3].rd_mem ? mem2proc_fu_data : fu_complete_out_buffer[3].dest_value;
+            proc2Dmem_fu_addr = fu_complete_out_buffer[3].dest_value;
+
 		end 
 
 		if (alu3_done) begin
 			fu_prf_out[4].idx = fu_complete_out_buffer[4].pr_idx;
-			fu_prf_out[4].value = fu_complete_out_buffer[4].dest_value;
+			fu_prf_out[4].value = fu_complete_out_buffer[4].rd_mem ? mem2proc_fu_data : fu_complete_out_buffer[4].dest_value;
+            proc2Dmem_fu_addr = fu_complete_out_buffer[4].dest_value;
 		end 
 
 		if (mult1_done) begin

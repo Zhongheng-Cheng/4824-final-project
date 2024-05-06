@@ -1,3 +1,4 @@
+`include "../test/mem.sv"
 
 
 module testbench;
@@ -152,6 +153,9 @@ module testbench;
     logic [1:0] proc2Dmem_command;
     logic [`XLEN-1:0] proc2Dmem_addr;
     logic [`XLEN-1:0] proc2Dmem_data;
+    logic [1:0] proc2Dmem_fu_command;
+    logic [`XLEN-1:0] proc2Dmem_fu_addr;
+
 
     // Debug display
     `ifdef TEST_MODE
@@ -163,6 +167,25 @@ module testbench;
     MAPTABLE_PACKET					                maptable_packet;
     logic [`N_PHYS_REG-1:0][`XLEN-1:0]              physical_register_display;
     `endif
+
+    mem memory (
+		// Inputs
+		.clk               (clock),
+		.proc2mem_command  (proc2mem_command),
+		.proc2mem_addr     (proc2mem_addr),
+		.proc2mem_data     (proc2mem_data),
+        `ifndef CACHE_MODE
+		    .proc2mem_size     (proc2mem_size),
+        `endif
+
+		// Outputs
+
+		.mem2proc_response (mem2proc_response),
+		.mem2proc_data     (mem2proc_data),
+		.mem2proc_tag      (mem2proc_tag)
+	);
+
+
 
     pipeline DUT (
                     .clock(clock),
@@ -247,7 +270,9 @@ module testbench;
 
                     .proc2Dmem_command(proc2Dmem_command),
                     .proc2Dmem_addr(proc2Dmem_addr),
-                    .proc2Dmem_data(proc2Dmem_data)
+                    .proc2Dmem_data(proc2Dmem_data),
+                    .proc2Dmem_fu_command(proc2Dmem_fu_command),
+		            .proc2Dmem_fu_addr(proc2Dmem_fu_addr)
 
                     // Testmode display
                     `ifdef TEST_MODE
@@ -530,7 +555,7 @@ module testbench;
             $fdisplay(pipe_out, "       %b       ", retire_wfi_halt);
 
             // halt
-            $fdisplay(pipe_out, "  %b |   %d  |   %h   |  %b | %h | %b | %b |  %d  ", halt, rob_retire_packet[0].dest_value, rob_retire_packet[0].opb, proc2mem_command, rob_retire_packet[0].NPC, rob_retire_packet[0].wr_mem, proc2Dmem_command, proc2mem_addr);
+            $fdisplay(pipe_out, "  %b |   %d  |   %h   |  %b | %h | %b |  %d   |  %d  |  %h ", halt, rob_retire_packet[0].dest_value, rob_retire_packet[0].opb, proc2mem_command, rob_retire_packet[0].NPC, proc2Dmem_fu_command, proc2Dmem_fu_addr, proc2mem_addr, proc2mem_data);
 
     endfunction
 
@@ -718,7 +743,7 @@ module testbench;
         end    */
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #1000000
+        #100000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 

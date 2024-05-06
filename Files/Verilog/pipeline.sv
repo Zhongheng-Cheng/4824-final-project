@@ -96,7 +96,10 @@ module pipeline (
 	output logic [5:0]										done_fu_out,
 	output logic [1:0]										proc2Dmem_command,
 	output logic [`XLEN-1:0] proc2Dmem_data,
-    output logic [`XLEN-1:0] proc2Dmem_addr
+    output logic [`XLEN-1:0] proc2Dmem_addr,
+	output logic [1:0]										proc2Dmem_fu_command,
+	output logic [`XLEN-1:0] proc2Dmem_fu_addr
+
     
     `ifdef TEST_MODE
     , output ROB_PACKET [`N_ROB_ENTRIES-1:0]                rob_table_display
@@ -442,11 +445,14 @@ module pipeline (
 		.clock(clock),
 		.reset(clear),
 		.fu_issue_in(issue_fu_packet),
+		.mem2proc_data(mem2proc_data),
 
 		// Outputs
 		.fu_rs_out(fu_rs_packet),
 		.fu_complete_out(fu_packet),
 		.fu_prf_out(fu_prf_packet),
+		.proc2Dmem_fu_command(proc2Dmem_fu_command),
+		.proc2Dmem_fu_addr(proc2Dmem_fu_addr),
 		.stall_fu_2_dispatch(stall_fu_2_dispatch),
 		.done_fu_sel(done_fu_sel),
 		.done_fu_out(done_fu_out)
@@ -546,9 +552,13 @@ module pipeline (
     //logic [`XLEN-1:0] proc2Dmem_data;
     //logic [1:0]       proc2Dmem_command;
 	always_comb begin
-        if (proc2Dmem_command != BUS_NONE) begin // read or write DATA from memory
-            proc2mem_command = proc2Dmem_command;
-            proc2mem_addr    = proc2Dmem_addr;
+        if(proc2Dmem_fu_command != BUS_NONE) begin
+			proc2mem_command = proc2Dmem_fu_command;
+            proc2mem_addr    = proc2Dmem_fu_addr;
+		end
+		else if (proc2Dmem_command != BUS_NONE ) begin // read or write DATA from memory
+			proc2mem_command = proc2Dmem_command;
+            proc2mem_addr    = proc2Dmem_addr; 
             //proc2mem_size    = proc2Dmem_size;  // size is never DOUBLE in project 3
         end else begin                          // read an INSTRUCTION from memory
             proc2mem_command = BUS_LOAD;
