@@ -464,6 +464,8 @@ typedef struct packed {
 	logic [`XLEN-1:0] 				dest_value; 		    // instruction result from fu
     logic                           precise_state_enable;  // instruction is a taken branch and requires precise state handling
     logic [`XLEN-1:0]               target_pc;
+	logic 						    rd_mem;
+    logic 						    wr_mem;
 } COMPLETE_ROB_PACKET;  
 
 typedef struct packed{
@@ -535,6 +537,8 @@ typedef struct packed {
     logic                        precise_state_enable;  // precise state is needed when retire
     logic [`XLEN-1:0]            target_pc;
     logic [`XLEN-1:0]            dest_value;
+	logic 						 rd_mem;
+    logic 						 wr_mem;
 } ROB_PACKET;
 
 /////////////// END ROB PACKETS //////////////

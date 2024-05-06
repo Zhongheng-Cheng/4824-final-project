@@ -120,6 +120,10 @@ module rob (
                 next_rob[c_idx[i]].dest_value           = rob_complete_in[i].dest_value;
                 next_rob[c_idx[i]].precise_state_enable = rob_complete_in[i].precise_state_enable;
                 next_rob[c_idx[i]].target_pc            = rob_complete_in[i].target_pc;
+                next_rob[c_idx[i]].rd_mem               = rob_complete_in[i].rd_mem;
+                next_rob[c_idx[i]].wr_mem               = rob_complete_in[i].wr_mem;
+
+
             end  // if (rob_complete_in[i].valid)
         end  // for complete
 

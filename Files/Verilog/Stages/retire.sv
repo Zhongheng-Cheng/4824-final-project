@@ -40,6 +40,14 @@ module retire (
         end  // for each instruction
     end  // always_comb  // wfi_halt
 
+
+    assign proc2mem_command = wr_mem ?  BUS_STORE : 
+                              rd_mem ? BUS_LOAD :
+                              BUS_NONE;
+	assign proc2mem_addr[31:3] = retire_rob_in[0].target_pc;
+	assign proc2mem_data = retire_rob_in[0].dest_value; 
+
+
     always_comb begin
         for (int i = 0; i < `N_ARCH_REG; i++) begin
             recovery_maptable.map[i]  = arch_maptable[i];
