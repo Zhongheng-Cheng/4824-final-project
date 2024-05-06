@@ -466,6 +466,7 @@ typedef struct packed {
     logic [`XLEN-1:0]               target_pc;
 	logic 						    rd_mem;
     logic 						    wr_mem;
+	logic [`XLEN-1:0] 				opb;				  // opb
 } COMPLETE_ROB_PACKET;  
 
 typedef struct packed{
@@ -539,6 +540,8 @@ typedef struct packed {
     logic [`XLEN-1:0]            dest_value;
 	logic 						 rd_mem;
     logic 						 wr_mem;
+	logic [`XLEN-1:0] 				opb;				  // opb
+
 } ROB_PACKET;
 
 /////////////// END ROB PACKETS //////////////

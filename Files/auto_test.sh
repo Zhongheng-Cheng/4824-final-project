@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GROUND_TRUTH_DIR="$(pwd)/correct_output"
+GROUND_TRUTH_DIR="$(pwd)/../project3/project3/correct_output33"
 if [ ! -d "$GROUND_TRUTH_DIR" ]; then
     echo "Please setup correct_output/ in this directory"
     exit

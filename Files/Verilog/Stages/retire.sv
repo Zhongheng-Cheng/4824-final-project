@@ -15,6 +15,10 @@ module retire (
     output logic                                                          wfi_halt,
     output logic                  [`XLEN-1:0]                             target_pc, // target pc for precise state
     output logic                                                          br_recover_enable,
+    output logic [1:0]                                                    proc2Dmem_command, // The memory command
+    //output MEM_SIZE          proc2Dmem_size,    // Size of data to read or write
+    output logic [`XLEN-1:0] proc2Dmem_addr,    // Address sent to Data memory
+    output logic [`XLEN-1:0] proc2Dmem_data,     // Data sent to Data memory
     output MAPTABLE_PACKET                                                recovery_maptable, //recover maptable
     output RETIRE_PACKET          [`SUPERSCALAR_WAYS-1:0]                 retire_out,
     output RETIRE_FREELIST_PACKET [`SUPERSCALAR_WAYS-1:0]                 retire_freelist_out
@@ -41,11 +45,12 @@ module retire (
     end  // always_comb  // wfi_halt
 
 
-    assign proc2mem_command = wr_mem ?  BUS_STORE : 
-                              rd_mem ? BUS_LOAD :
+
+    assign proc2Dmem_command = (retire_en[0] && retire_rob_in[0].wr_mem) ?  BUS_STORE : 
+                              (retire_en[0] && retire_rob_in[0].rd_mem) ? BUS_LOAD :
                               BUS_NONE;
-	assign proc2mem_addr[31:3] = retire_rob_in[0].target_pc;
-	assign proc2mem_data = retire_rob_in[0].dest_value; 
+	assign proc2Dmem_addr[31:3] = retire_rob_in[0].dest_value;
+	assign proc2Dmem_data = retire_rob_in[0].opb; 
 
 
     always_comb begin

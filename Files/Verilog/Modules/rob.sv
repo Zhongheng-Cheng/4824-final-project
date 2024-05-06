@@ -122,6 +122,7 @@ module rob (
                 next_rob[c_idx[i]].target_pc            = rob_complete_in[i].target_pc;
                 next_rob[c_idx[i]].rd_mem               = rob_complete_in[i].rd_mem;
                 next_rob[c_idx[i]].wr_mem               = rob_complete_in[i].wr_mem;
+                next_rob[c_idx[i]].opb                  = rob_complete_in[i].opb;
 
 
             end  // if (rob_complete_in[i].valid)

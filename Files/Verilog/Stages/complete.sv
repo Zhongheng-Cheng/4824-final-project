@@ -34,6 +34,8 @@ module complete (
                 complete_rob_out[i].dest_value           = complete_fu_in[i].dest_value;
                 complete_rob_out[i].precise_state_enable = complete_fu_in[i].take_branch;
                 complete_rob_out[i].target_pc            = complete_fu_in[i].target_pc;
+                complete_rob_out[i].wr_mem               = complete_fu_in[i].wr_mem;
+                complete_rob_out[i].opb                  = complete_fu_in[i].opb;
             end  // if (complete_fu_in[i].valid)
         end  // for each complete_rob_out
     end  // always_comb  // ROB

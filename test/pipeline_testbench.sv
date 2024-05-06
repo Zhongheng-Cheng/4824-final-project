@@ -149,6 +149,9 @@ module testbench;
     logic retire_wfi_halt;
     logic [2:0]                                         	done_fu_sel;
     logic [5:0]  done_fu_out;
+    logic [1:0] proc2Dmem_command;
+    logic [`XLEN-1:0] proc2Dmem_addr;
+    logic [`XLEN-1:0] proc2Dmem_data;
 
     // Debug display
     `ifdef TEST_MODE
@@ -240,7 +243,11 @@ module testbench;
 
                     //done_fu_sel from fu
                     .done_fu_sel(done_fu_sel),
-                    .done_fu_out(done_fu_out)
+                    .done_fu_out(done_fu_out),
+
+                    .proc2Dmem_command(proc2Dmem_command),
+                    .proc2Dmem_addr(proc2Dmem_addr),
+                    .proc2Dmem_data(proc2Dmem_data)
 
                     // Testmode display
                     `ifdef TEST_MODE
@@ -511,19 +518,19 @@ module testbench;
             $fdisplay(pipe_out, " | t|ar|   NPC  |c");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
                 $fdisplay(pipe_out, "%1d|%2d|%2d|%h|%b",
-                    i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
+                    i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete );
 
             // retire_freelist_packet
             $fdisplay(pipe_out, " | told | vld ");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d|  %2d  |  %b  ", 
+                $fdisplay(pipe_out, "%1d|  %2d  |  %b   ", 
                     i, retire_freelist_packet[i].told_idx, retire_freelist_packet[i].valid);
 
             // retire_wfi_halt
             $fdisplay(pipe_out, "       %b       ", retire_wfi_halt);
 
             // halt
-            $fdisplay(pipe_out, "  %b  ", halt);
+            $fdisplay(pipe_out, "  %b |   %d  |   %h   |  %b | %h | %b | %b |  %d  ", halt, rob_retire_packet[0].dest_value, rob_retire_packet[0].opb, proc2mem_command, rob_retire_packet[0].NPC, rob_retire_packet[0].wr_mem, proc2Dmem_command, proc2mem_addr);
 
     endfunction
 
@@ -585,7 +592,13 @@ module testbench;
         for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
             Imem2proc_data[i] = tb_mem[fetch_PC_out[i][`XLEN-1:3]];
     end
-
+/*
+    always@(posedge clock)
+	    begin
+		show_clk_count(cpi_fileno);
+        $display("@@@ mem address = %d", proc2mem_addr[31:3]);
+	    end
+*/
     always @(negedge clock) begin
         if(reset) begin
             $display("@@\n@@  %t : System STILL at reset, can't show anything\n@@",
@@ -683,6 +696,7 @@ module testbench;
         @(posedge clock);
         @(posedge clock);
         
+
         $readmemh({"programs/", filename, ".mem"}, tb_mem);
 	@(posedge clock);
         @(posedge clock);
@@ -704,7 +718,7 @@ module testbench;
         end    */
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
-        #100000
+        #1000000
         $display("@@  %t  Can't STOP!!!!!!!!!!!!!!!!!......\n@@\n@@", $realtime);
 	    $finish;
 

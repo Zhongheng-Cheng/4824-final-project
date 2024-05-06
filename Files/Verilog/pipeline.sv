@@ -93,7 +93,10 @@ module pipeline (
     output logic   [`XLEN-1:0]                              target_pc, // target_pc pc for precise state
     output logic                                            retire_wfi_halt,
 	output logic [2:0]                                         	done_fu_sel,
-	output logic [5:0]										done_fu_out
+	output logic [5:0]										done_fu_out,
+	output logic [1:0]										proc2Dmem_command,
+	output logic [`XLEN-1:0] proc2Dmem_data,
+    output logic [`XLEN-1:0] proc2Dmem_addr
     
     `ifdef TEST_MODE
     , output ROB_PACKET [`N_ROB_ENTRIES-1:0]                rob_table_display
@@ -528,6 +531,30 @@ module pipeline (
 		.br_recover_enable(br_recover_enable),
         .target_pc(target_pc),
 
-        .wfi_halt(retire_wfi_halt)
+        .wfi_halt(retire_wfi_halt),
+
+		//memory access
+		.proc2Dmem_command(proc2Dmem_command),
+		.proc2Dmem_addr(proc2Dmem_addr),
+		.proc2Dmem_data(proc2Dmem_data)
     );
+
+
+	//////////////////////////////// mem retire
+
+	//logic [`XLEN-1:0] proc2Dmem_addr;
+    //logic [`XLEN-1:0] proc2Dmem_data;
+    //logic [1:0]       proc2Dmem_command;
+	always_comb begin
+        if (proc2Dmem_command != BUS_NONE) begin // read or write DATA from memory
+            proc2mem_command = proc2Dmem_command;
+            proc2mem_addr    = proc2Dmem_addr;
+            //proc2mem_size    = proc2Dmem_size;  // size is never DOUBLE in project 3
+        end else begin                          // read an INSTRUCTION from memory
+            proc2mem_command = BUS_LOAD;
+            proc2mem_addr    = proc2Imem_addr;
+            //proc2mem_size    = DOUBLE;          // instructions load a full memory line (64 bits)
+        end
+        	proc2mem_data = {32'b0, proc2Dmem_data};
+    end
 endmodule  // module pipeline
