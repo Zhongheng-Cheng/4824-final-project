@@ -44,12 +44,18 @@ module retire (
         end  // for each instruction
     end  // always_comb  // wfi_halt
 
+    logic [`XLEN-1:0] result;
 
+    always_comb begin
+        result = (retire_rob_in[0].precise_state_enable) ? retire_rob_in[0].NPC : (retire_rob_in[0].rd_mem) ? retire_rob_in[0].read_data : retire_rob_in[0].dest_value;
+    end
+
+    //assign retire_out[0].result = result;
 
     assign proc2Dmem_command = (retire_en[0] && retire_rob_in[0].wr_mem) ?  BUS_STORE : 
                               (retire_en[0] && retire_rob_in[0].rd_mem) ? BUS_LOAD :
                               BUS_NONE;
-	assign proc2Dmem_addr[31:3] = retire_rob_in[0].dest_value;
+	assign proc2Dmem_addr = retire_rob_in[0].dest_value;
 	assign proc2Dmem_data = retire_rob_in[0].opb; 
 
 
@@ -71,6 +77,8 @@ module retire (
                 retire_out[i].ar_idx     = retire_rob_in[i].ar_idx;
                 retire_out[i].NPC        = retire_rob_in[i].NPC;
                 retire_out[i].complete   = `TRUE;
+                retire_out[i].pr_idx     = retire_rob_in[i].pr_idx;
+                retire_out[i].result     = result;
 
                 retire_freelist_out[i].told_idx = retire_rob_in[i].told_idx;
                 retire_freelist_out[i].valid    = `TRUE;

@@ -37,6 +37,9 @@ module complete (
                 complete_rob_out[i].wr_mem               = complete_fu_in[i].wr_mem;
                 complete_rob_out[i].rd_mem               = complete_fu_in[i].rd_mem;
                 complete_rob_out[i].opb                  = complete_fu_in[i].opb;
+                complete_rob_out[i].pr_idx               = complete_fu_in[i].pr_idx;
+                complete_rob_out[i].read_data            = complete_fu_in[i].read_data;
+
             end  // if (complete_fu_in[i].valid)
         end  // for each complete_rob_out
     end  // always_comb  // ROB

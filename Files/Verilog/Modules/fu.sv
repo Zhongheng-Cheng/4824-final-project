@@ -261,6 +261,8 @@ module fu (
 
     assign proc2Dmem_fu_command = (ls1_done) ? BUS_LOAD : BUS_NONE;
 	assign mem2proc_fu_data = mem2proc_data;
+    
+
      
 
     always_comb begin
@@ -382,6 +384,7 @@ module fu (
     always_comb begin
         //buffer_has_value = buffer_has_value_mid;
         done_tmp = done_fu;
+        
       //  buffer_has_value = done_fu;
         casez(done_fu_sel) 
             3'd4 : begin
@@ -420,6 +423,7 @@ module fu (
                 
             end
         endcase
+        fu_complete_out.read_data = mem2proc_data;
     end
     
 endmodule

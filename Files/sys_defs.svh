@@ -464,6 +464,9 @@ typedef struct packed {
 	logic [`XLEN-1:0] 				dest_value; 		    // instruction result from fu
     logic                           precise_state_enable;  // instruction is a taken branch and requires precise state handling
     logic [`XLEN-1:0]               target_pc;
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+	logic [`XLEN-1:0]      			read_data;
+
 	logic 						    rd_mem;
     logic 						    wr_mem;
 	logic [`XLEN-1:0] 				opb;				  // opb
@@ -493,6 +496,10 @@ typedef struct packed {
     logic                        complete;
     logic [`XLEN-1:0]            NPC;
     logic [`XLEN-1:0]            dest_value;
+	logic [`XLEN-1:0]      		 result;
+
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+
 } RETIRE_PACKET;
 
 typedef struct packed {
@@ -536,6 +543,9 @@ typedef struct packed {
     logic                        halt; 					// halt inst e.g., wfi
     logic [`XLEN-1:0]            NPC;
     logic                        precise_state_enable;  // precise state is needed when retire
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+	logic [`XLEN-1:0]      			read_data;
+
     logic [`XLEN-1:0]            target_pc;
     logic [`XLEN-1:0]            dest_value;
 	logic 						 rd_mem;
@@ -561,6 +571,8 @@ typedef struct packed{
 
     logic [`XLEN-1:0] 				target_pc;
     logic [`XLEN-1:0]      			dest_value;
+	logic [`XLEN-1:0]      			read_data;
+
 
 	logic 							rd_mem;  	  // instruction reads from memory
 	logic 							wr_mem;       // instruction writes to memory

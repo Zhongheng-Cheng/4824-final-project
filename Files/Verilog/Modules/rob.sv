@@ -123,7 +123,8 @@ module rob (
                 next_rob[c_idx[i]].rd_mem               = rob_complete_in[i].rd_mem;
                 next_rob[c_idx[i]].wr_mem               = rob_complete_in[i].wr_mem;
                 next_rob[c_idx[i]].opb                  = rob_complete_in[i].opb;
-
+                next_rob[c_idx[i]].pr_idx               = rob_complete_in[i].pr_idx;
+                next_rob[c_idx[i]].read_data               = rob_complete_in[i].read_data;
 
             end  // if (rob_complete_in[i].valid)
         end  // for complete
