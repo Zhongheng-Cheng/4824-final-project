@@ -1,107 +1,27 @@
-# EECS 470 Computer Architecture
+# Course Project for EECS4824 Computer Architecture
 
-# Overview:
-    Out-of-Order R10k Simulator
+# Introduction:
 
-# Project MileStone 2
-We completed the rest modules for R10K. However, we are working on pipeline stage (i.e., Fetch Dispatch Issue 
-FU Complete and Retire). 
-
-Currently, we are unable to pass the test.
-
-## Run simulation for each module ( xxx means module name)
-```shell
-make xxx
-```
-
-## Make synthesis for XXX module
-```shell
-make xxx_syn
-```
-## Check test coverage for XXX module
-```shell
-make xxx_verdi_cov
-```
+R10K is a high-performance microprocessor designed by MIPS and first introduced in the mid-1990s. It uses out-of-order execution technology, which allows the processor to execute instructions outside the original order of program instructions to improve execution efficiency and processor throughput. This out-of-order execution mechanism can effectively utilize processor resources and reduce idle cycles caused by instruction dependencies and execution waits, thereby significantly improving program execution speed.
+The R10K processor enhances resource utilization by executing independent instructions while waiting for others, reducing dependencies between instructions to minimize pipeline stalls, and boosting parallel processing capabilities by allowing simultaneous instruction execution. It also incorporates dynamic scheduling and advanced branch prediction to optimize execution speed and accuracy. Our project is dedicated to building an out-of-order execution pipeline based on the R10K architecture. We chose the R10K for these significant advantages, which altogether elevate computing performance and efficiency.
 
 
 
-# Project MileStone 1
+# How to use
 
-Do not "make" & "make syn" in milestone1. They are reserved for the final pipeline R10K.
-
-We completed the ROB module
-
-## Run simulation for ROB module
-```shell
-make rob
-```
-
-## Make synthesis for ROB module
-```shell
-make rob_syn
-```
-## Check test coverage for ROB module
-```shell
-make rob_verdi_cov
-```
-
-# Tentative Final 
-
-## Run
-```shell
-make
-```
-
-### Build Machine Code from Assemble (*.s)
+run single program:
 
 ```shell
-make assembly SOURCE="path to your_assembly " 
+make xxx.out
 ```
 
-### Build Machine Code from C Program (*.c)
+run visual debugger
 
 ```shell
-make program SOURCE="path to your_program.c " 
+make xxx.vis
 ```
 
-## Run all test case
+run all
 ```shell
 ./auto_test.sh
-```
-
-### Run each module testcases
-```shell
-make "the module name"
-```
-
-# Project Structure
-
-```
-.
-├── Makefile
-├── README.m
-└── Verilog
-    ├── PRF.sv
-    ├── ROB.sv
-    ├── arch.sv
-    ├── complete_stage.sv
-    ├── dispatch.sv
-    ├── ex_stage.sv
-    ├── fetch.sv
-    ├── freelist.sv
-    ├── icache.sv
-    ├── id_stage.sv
-    ├── if_stage.sv
-    ├── issue.sv
-    ├── maptable.sv
-    ├── mem_stage.sv
-    ├── mult.sv
-    ├── pipeline.sv
-    ├── ps.sv
-    ├── regfile.sv
-    ├── retire.sv
-    ├── rs.sv
-    └── wb_stage.sv
-
-
 ```
