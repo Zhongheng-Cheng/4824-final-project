@@ -1,12 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Module Name :  fetch.sv                                           //
-//                                                                     //
-//   Description :  instruction fetch stage of the pipeline;      	   // 
-//                  fetch instruction, compute next PC location, and   //
-//                  send them down the pipeline.                       //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -52,8 +43,7 @@ module fetch (
 	end  // always_comb  // fetch_dispatch_out
 
 	always_comb begin
-		// if there's a taken branch, set next_PC according to its target
-		// else, increment the PC by 4*(SUPERSCALAR_WAYS-num_stalls)
+
         for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
 			next_PC[i] = branch_flush_en		  ? (target_pc + (i * `XLEN'd4) ) : 
 						 fetch_dispatch_in.enable ? (PC_reg[fetch_dispatch_in.first_stall_idx] + (i * `XLEN'd4)  ) :

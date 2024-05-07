@@ -1,13 +1,3 @@
-//////////////////////////////////////////////////////////////////////////
-//                                                                      //
-//  Module Name :    brcond.sv                                            //
-//                                                                      //
-//  Description :    brcond submodule of the fu module;                   //
-//                 given the instruction code, compute the proper       //
-//                 condition for the instruction; for branches this     //
-//                 condition will indicate whether the target is taken  //
-//                                                                      //
-//////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 

@@ -1,15 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//  Module Name :  prf.sv                                              //
-//                                                                     //
-//  Description :  physical register file;                             // 
-//                 stores the true values of the physical registers;   //
-//                 the execute stage sends th execute value and the    //
-//                 destination register's index to store; if the       //
-//                 function unit doesn't has a execute result, it      //
-//                 sends value 0 to register 0                         //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 

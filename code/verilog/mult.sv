@@ -1,10 +1,3 @@
-//////////////////////////////////////////////////////////////////////////
-//                                                                      //
-//  Module Name :  mult.sv                                              //
-//                                                                      //
-//  Description :  multiplier submodule of the fu module;               //
-//                                                                      //
-//////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -27,21 +20,21 @@ module mult #(parameter NUM_STAGE = 4) (
   	logic [(`XLEN*2)-1:0] 			   mplier_out;
   	logic [(`XLEN*2)-1:0] 			   mcand_in;
   	logic [(`XLEN*2)-1:0] 			   mplier_in;
-  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] internal_products;
-  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] internal_mcands;
-  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] internal_mpliers;
-  	logic [NUM_STAGE:0] 			   internal_dones;
+  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] in_products;
+  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] in_mcand;
+  	logic [NUM_STAGE:0][(`XLEN*2)-1:0] in_mplier;
+  	logic [NUM_STAGE:0] 			   in_done;
 	logic [`XLEN-1:0] 				   product;
 
 	assign mcand_in  			= sign[0] ? { {`XLEN{mcand[`XLEN - 1]}}, mcand }   : 
 								  { {`XLEN{1'b0}}, mcand };
 	assign mplier_in 			= sign[1] ? { {`XLEN{mplier[`XLEN - 1]}}, mplier } : 
 								  { {`XLEN{1'b0}}, mplier };
-	assign internal_mcands[0]   = mcand_in;
-	assign internal_mpliers[0]  = mplier_in;
-	assign internal_products[0] = 0;
-	assign internal_dones[0]    = start;
-	assign done    				= internal_dones;
+	assign in_mcand[0]   = mcand_in;
+	assign in_mplier[0]  = mplier_in;
+	assign in_products[0] = 0;
+	assign in_done[0]    = start;
+	assign done    				= in_done;
 
 	assign fu_complete_out.rd_mem	   = fu_issue_in_reg.rd_mem;
 	assign fu_complete_out.wr_mem	   = fu_issue_in_reg.wr_mem;
@@ -71,10 +64,10 @@ module mult #(parameter NUM_STAGE = 4) (
 
 	always_comb begin
 		case (mult_func_reg)
-			ALU_MUL:     product = internal_products[NUM_STAGE][`XLEN-1:0];
-			ALU_MULH:    product = internal_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
-			ALU_MULHSU:  product = internal_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
-			ALU_MULHU:   product = internal_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
+			ALU_MUL:     product = in_products[NUM_STAGE][`XLEN-1:0];
+			ALU_MULH:    product = in_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
+			ALU_MULHSU:  product = in_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
+			ALU_MULHU:   product = in_products[NUM_STAGE][(2*`XLEN)-1:`XLEN];
 			default:	 product = 0;
 		endcase  // case (mult_func_reg)
 	end  // always_comb  // product
@@ -84,14 +77,14 @@ module mult #(parameter NUM_STAGE = 4) (
 			mult_stage #(.NUM_STAGE(NUM_STAGE)) mult_stage_0 (
 				.clock(clock),
 				.reset(reset),
-				.product_in(internal_products[i]),
-				.mplier_in(internal_mpliers[i]),
-				.mcand_in(internal_mcands[i]), 
-				.start(internal_dones[i]),
-				.product_out(internal_products[i + 1]),
-				.mplier_out(internal_mpliers[i + 1]),
-				.mcand_out(internal_mcands[i + 1]),
-				.done(internal_dones[i + 1])
+				.product_in(in_products[i]),
+				.mplier_in(in_mplier[i]),
+				.mcand_in(in_mcand[i]), 
+				.start(in_done[i]),
+				.product_out(in_products[i + 1]),
+				.mplier_out(in_mplier[i + 1]),
+				.mcand_out(in_mcand[i + 1]),
+				.done(in_done[i + 1])
 			);
 		end  // for each stage
 	endgenerate  // generate mstage

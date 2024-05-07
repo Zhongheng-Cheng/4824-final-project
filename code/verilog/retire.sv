@@ -1,10 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//  Module Name :  retire.sv                                           //
-//                                                                     //
-//  Description :  instruction retire stage of the pipeline;           // 
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -25,10 +18,6 @@ module retire (
 );
     logic [`SUPERSCALAR_WAYS-1:0] retire_en;
 
-    // The rob will always send the top 3 instructions, regardless of if they're ready
-    // we should only retire an instruction if those before it are ready 
-    // (e.g., only retire retire_rob_in[2] if both retire_rob_in[0] and retire_rob_in[1] are complete
-    // we also should not retire instructions following a taken branch to the recovery_maptable
     always_comb begin
         retire_en[0] = retire_rob_in[0].complete;
         for (int i = 1; i < `SUPERSCALAR_WAYS; i++)

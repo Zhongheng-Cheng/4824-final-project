@@ -1,12 +1,3 @@
-//////////////////////////////////////////////////////////////////////////
-//                                                                      //
-//  Module Name :  alu.sv                                               //
-//                                                                      //
-//  Description :  alu submodule of the fu module;                      //
-//                 given the command code CMD and proper operands A     //
-//                 and B, compute the result of the instruction         // 
-//                                                                      //
-//////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 

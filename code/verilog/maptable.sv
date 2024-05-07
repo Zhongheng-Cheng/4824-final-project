@@ -1,15 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//  Module Name :  maptable.sv                                         //
-//                                                                     //
-//  Description :  map table                                           // 
-//                 recieves a signal from the complete stage           //
-//                 indicating the instructions that are done, if any   //
-//                 are, and then assigns physical register indices to  //
-//                 architectural register indices according to the     //
-//                 signal from the dispatch stage                      //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 

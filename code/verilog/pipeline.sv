@@ -1,34 +1,22 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Modulename :  pipeline.v                                          //
-//                                                                     //
-//  Description :  Top-level module of the verisimple pipeline;        //
-//                 This instantiates and connects the 5 stages of the  //
-//                 Verisimple pipeline togeather.                      //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
 module pipeline (
-	input clock,  // System clock
-	input reset,  // System reset
-	input [`SUPERSCALAR_WAYS-1:0][3:0]  					mem2proc_response,  // Tag from memory about current request
-	input [63:0] 											mem2proc_data,  	// Data coming back from memory
-	input [`SUPERSCALAR_WAYS-1:0][3:0]  					mem2proc_tag,       // Tag from memory about current reply
+	input clock,  
+	input reset,  
+	input [`SUPERSCALAR_WAYS-1:0][3:0]  					mem2proc_response, 
+	input [63:0] 											mem2proc_data,  	
+	input [`SUPERSCALAR_WAYS-1:0][3:0]  					mem2proc_tag,    
     input [`SUPERSCALAR_WAYS-1:0][63:0]	                    Imem2proc_data,
 	
-	output logic [1:0]  									proc2mem_command,    // command sent to memory
-	output logic [`XLEN-1:0] 								proc2mem_addr,      // Address sent to memory
-	output logic [63:0] 									proc2mem_data,      // Data sent to memory
+	output logic [1:0]  									proc2mem_command,   
+	output logic [`XLEN-1:0] 								proc2mem_addr,     
+	output logic [63:0] 									proc2mem_data,    
 
     output logic        									halt,
     output logic [2:0]  									inst_count,
 
 
-	// testing hooks (these must be exported so we can test
-	// the synthesized version) data is tested by looking at
-	// the final values in memory
 	
 	// Outputs from Fetch-Stage 
 	output logic [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] 		fetch_PC_out,
@@ -153,11 +141,6 @@ module pipeline (
     assign physical_register_display   = physical_register;
   `endif
 
-    //////////////////////////////////////////////////
-	//                                              //
-	//                 ROB-Module                   //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	rob rob_0 (
 		// Inputs
@@ -175,11 +158,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                  RS-Module                   //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	rs rs_0 (
 		// Inputs
@@ -199,11 +177,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//               FREELIST-Module                //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	freelist freelist_0 (
 		// Inputs
@@ -223,11 +196,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//               MAPTABLE-Module                //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	maptable maptable_0 (
 		// Inputs
@@ -243,11 +211,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                  PRF-Module                  //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	prf prf_0 (
 		// Inputs
@@ -260,11 +223,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                 ARCH-Module                  //
-	//                                              //
-	//////////////////////////////////////////////////
 	
 	arch arch_0 (
 		// Inputs
@@ -277,11 +235,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                 Fetch-Stage                  //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	always_comb begin
 		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
@@ -307,11 +260,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//       Fetch/Dispatch Pipeline Register       //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	always_comb begin
 		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
@@ -345,11 +293,6 @@ module pipeline (
 	end // always
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                Dispatch-Stage                //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	always_comb begin
 		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
@@ -379,11 +322,6 @@ module pipeline (
     );
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                  Issue-Stage                 //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	always_comb begin
 		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
@@ -403,11 +341,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//        Issue/Execute Pipeline Register       //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	always_comb begin
 		for (int i = 0; i < `SUPERSCALAR_WAYS; i++) begin
@@ -434,12 +367,6 @@ module pipeline (
 	end // always
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                 Execute-Stage                //
-	//                                              //
-	//////////////////////////////////////////////////
-
 	fu fu_0 (
 		// Inputs
 		.clock(clock),
@@ -459,11 +386,6 @@ module pipeline (
 	);
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//      Execute/Complete Pipeline Register      //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	// synopsys sync_set_reset "reset"
 	always_ff @(posedge clock) begin
@@ -482,11 +404,6 @@ module pipeline (
 	end // always
 
 
-	//////////////////////////////////////////////////
-	//                                              //
-	//                Complete-Stage                //
-	//                                              //
-	//////////////////////////////////////////////////
 
 	complete complete_0 (
 		// Inputs
@@ -498,29 +415,9 @@ module pipeline (
 	);
 
 
-	// logic branch_pre;
-	// always_comb begin
-	// 	branch_pre = 0;
-	// 	if (br_recover_enable) begin
-	// 		branch_pre = 1;
-	// 	end
-	// end
-	// always_ff @(posedge clock) begin
-	// 	br_recover_enable <= complete_rob_packet[0].precise_state_enable;
-	// 	target_pc         <= complete_rob_packet[0].target_pc;
-	// 	if (branch_pre) br_recover_enable <= 0;
 
-	// end
-
-	//////////////////////////////////////////////////
-	//                                              //
-	//                 Retire-Stage                 //
-	//                                              //
-	//////////////////////////////////////////////////
     assign halt = retire_wfi_halt;
 
-	// logic br_recover_enable_r;
-	// logic [`XLEN-1:0] target_pc_r;
 
 	retire retire_0 (
 		// Inputs 
@@ -548,9 +445,7 @@ module pipeline (
 
 	//////////////////////////////// mem retire
 
-	//logic [`XLEN-1:0] proc2Dmem_addr;
-    //logic [`XLEN-1:0] proc2Dmem_data;
-    //logic [1:0]       proc2Dmem_command;
+
 	always_comb begin
         if(proc2Dmem_fu_command != BUS_NONE) begin
 			proc2mem_command = proc2Dmem_fu_command;

@@ -1,14 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//  Module Name :  complete.sv                                         //
-//                                                                     //
-//  Description :  instruction complete stage of the pipeline;         // 
-//                 send out the CBD tags for any completed             //
-//                 instructions and pass a complete signal to ROB      //
-//                 if a branch was taken, it sends out a true (`TRUE)  // 
-//                 take_branch signal and the branch_branch_target_pc  // 
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 

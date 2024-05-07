@@ -1,12 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//  Module Name :  decoder.sv                                          //
-//                                                                     //
-//  Description :  decoder for the dispatch stage of the pipeline;     // 
-//                 given instruction bits IR, produce the appropriate  //
-//                 datapath control signals                            //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -32,11 +23,11 @@ module decoder (
     output logic                        valid_inst      // for counting valid instructions executed
 );
     INST  inst;
-    logic valid_inst_in;
+    logic inst_valid;
 
     assign inst          = fetch_packet.inst;
-    assign valid_inst_in = fetch_packet.valid;
-    assign valid_inst    = valid_inst_in & ~illegal;
+    assign inst_valid = fetch_packet.valid;
+    assign valid_inst    = inst_valid & ~illegal;
 
     always_comb begin
         // default control values:
@@ -62,7 +53,7 @@ module decoder (
         halt          = `FALSE;
         illegal       = `FALSE;
 
-        if (valid_inst_in) begin
+        if (inst_valid) begin
             casez (inst)
                 `RV32_LUI: begin
                     fu_sel     = ALU_1;
@@ -347,6 +338,6 @@ module decoder (
                 default: 
                     illegal = `TRUE;
             endcase  // casez (inst)
-        end  // if (valid_inst_in)
+        end  // if (inst_valid)
     end  // always
 endmodule  // decoder

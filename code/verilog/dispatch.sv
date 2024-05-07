@@ -1,12 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Module Name :  dispatch.sv                                        //
-//                                                                     //
-//   Description :  instruction dispatch stage of the pipeline;        // 
-//                  decode instructions and add them to the ROB        //
-//                  and RS                                             //
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -25,9 +16,7 @@ module dispatch (
     output DISPATCH_RS_PACKET       [`SUPERSCALAR_WAYS-1:0] dispatch_rs_out,        // for RS
     output DISPATCH_ROB_PACKET      [`SUPERSCALAR_WAYS-1:0] dispatch_rob_out,       // for rob
     output DISPATCH_MAPTABLE_PACKET [`SUPERSCALAR_WAYS-1:0] dispatch_maptable_out   // new map
-//   `ifdef TEST_MODE
-//   , output logic logic_display
-//   `endif
+
 );
     // Decode instructions
     logic [`SUPERSCALAR_WAYS-1:0][`N_ARCH_REG_BITS-1:0] ar_idx, reg1_ar_idx, reg2_ar_idx;
@@ -135,9 +124,7 @@ module dispatch (
                 pr_idx[i]                          = `ZERO_REG;
                 dispatch_freelist_out.new_pr_en[i] = `FALSE;
             end  // if the instruction is invalid or doesn't have a destination register
-        //   `ifdef TEST_MODE
-        //     logic_display = ~stall_en;
-        //   `endif
+       
         end  // for each dispatch_freelist_out.new_pr_en
     end  // always_comb  // FREELIST
 

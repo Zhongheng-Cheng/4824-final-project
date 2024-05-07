@@ -1,10 +1,3 @@
-/////////////////////////////////////////////////////////////////////////
-//                                                                     //
-//   Module Name :  icache.sv                                          //
-//                                                                     //
-//   Description :                                                     // 
-//                                                                     //
-/////////////////////////////////////////////////////////////////////////
 
 `timescale 1ns/100ps
 
@@ -121,15 +114,7 @@ module icache (
       fetch_addr = {proc2Icache_addr[0][`XLEN-1:3],3'b0};
     end
   end
-/*  always_comb begin
-	for (int i = 0; i < `SUPERSCALAR_WAYS; i = i + 1) begin
-		 Icache_data_out[i] = proc2Icache_addr[i][2] ? cachemem_data[i][63:32] : cachemem_data[i][31:0];
-		 Icache_valid_out[i] = cachemem_valid[i];
- 		 //proc2Imem_addr[i] = {proc2Icache_addr[i][`XLEN-1:3],3'b0};
-		 
-		 
-        end
-   end*/
+
   // synopsys sync_set_reset "reset"
   always_ff @(posedge clock) begin
     if(reset) begin
