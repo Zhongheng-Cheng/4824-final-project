@@ -1,25 +1,27 @@
-# 4824 Final Project
+# Course Project for EECS4824 Computer Architecture
 
-# Documents
-- [Final Project Proposal](https://docs.google.com/document/d/1mX6vv4wasztjZc2xbIlh0OIVCv7UNRLx8lgrKPhfSmk/edit?usp=sharing)
-- [Report - Milestone 1](https://docs.google.com/document/d/1L5_BCjIC5MCfS7HVMpk9qlu1qQD4bnViPVmTvOefh7o/edit)
+# Introduction:
 
-# Commands
+R10K is a high-performance microprocessor designed by MIPS and first introduced in the mid-1990s. It uses out-of-order execution technology, which allows the processor to execute instructions outside the original order of program instructions to improve execution efficiency and processor throughput. This out-of-order execution mechanism can effectively utilize processor resources and reduce idle cycles caused by instruction dependencies and execution waits, thereby significantly improving program execution speed.
+The R10K processor enhances resource utilization by executing independent instructions while waiting for others, reducing dependencies between instructions to minimize pipeline stalls, and boosting parallel processing capabilities by allowing simultaneous instruction execution. It also incorporates dynamic scheduling and advanced branch prediction to optimize execution speed and accuracy. Our project is dedicated to building an out-of-order execution pipeline based on the R10K architecture. We chose the R10K for these significant advantages, which altogether elevate computing performance and efficiency.
 
-## Generate output file for a particular program (xxx.s/c)
 
-```bash
+
+# How to use
+
+run single program:
+
+```shell
 make xxx.out
 ```
 
-## Open visual debugger for a particular program (xxx.s/c)
+run visual debugger
 
-This command will firstly call `make xxx.out`, and then run the visual debugger automatically.
-
-```bash
+```shell
 make xxx.vis
 ```
 
-# Parameter
-Number of bits = 32
-Mult Stage = 4
+run all
+```shell
+./auto_test.sh
+```
