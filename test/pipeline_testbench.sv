@@ -1,9 +1,10 @@
+`include "../test/mem.sv"
 
 
 module testbench;
     // //Internal Wires
     logic [63:0] tb_mem [`MEM_64BIT_LINES - 1:0];
-    string program_memory_file;
+    string filename;
     //counter used for when pipeline infinite loops, forces termination
     logic [63:0] debug_counter;
     
@@ -147,6 +148,14 @@ module testbench;
     RETIRE_FREELIST_PACKET [`SUPERSCALAR_WAYS-1:0]   retire_freelist_packet;
 
     logic retire_wfi_halt;
+    logic [2:0]                                         	done_fu_sel;
+    logic [5:0]  done_fu_out;
+    logic [1:0] proc2Dmem_command;
+    logic [`XLEN-1:0] proc2Dmem_addr;
+    logic [`XLEN-1:0] proc2Dmem_data;
+    logic [1:0] proc2Dmem_fu_command;
+    logic [`XLEN-1:0] proc2Dmem_fu_addr;
+
 
     // Debug display
     `ifdef TEST_MODE
@@ -158,6 +167,25 @@ module testbench;
     MAPTABLE_PACKET					                maptable_packet;
     logic [`N_PHYS_REG-1:0][`XLEN-1:0]              physical_register_display;
     `endif
+
+    mem memory (
+		// Inputs
+		.clk               (clock),
+		.proc2mem_command  (proc2mem_command),
+		.proc2mem_addr     (proc2mem_addr),
+		.proc2mem_data     (proc2mem_data),
+        `ifndef CACHE_MODE
+		    .proc2mem_size     (proc2mem_size),
+        `endif
+
+		// Outputs
+
+		.mem2proc_response (mem2proc_response),
+		.mem2proc_data     (mem2proc_data),
+		.mem2proc_tag      (mem2proc_tag)
+	);
+
+
 
     pipeline DUT (
                     .clock(clock),
@@ -234,7 +262,17 @@ module testbench;
                     .recovery_maptable(recovery_maptable),
                     .retire_packet(retire_packet),
                     .retire_freelist_packet(retire_freelist_packet),
-		            .retire_wfi_halt(retire_wfi_halt)
+		            .retire_wfi_halt(retire_wfi_halt),
+
+                    //done_fu_sel from fu
+                    .done_fu_sel(done_fu_sel),
+                    .done_fu_out(done_fu_out),
+
+                    .proc2Dmem_command(proc2Dmem_command),
+                    .proc2Dmem_addr(proc2Dmem_addr),
+                    .proc2Dmem_data(proc2Dmem_data),
+                    .proc2Dmem_fu_command(proc2Dmem_fu_command),
+		            .proc2Dmem_fu_addr(proc2Dmem_fu_addr)
 
                     // Testmode display
                     `ifdef TEST_MODE
@@ -342,7 +380,8 @@ module testbench;
                         i, physical_register_display[i], i + 32, physical_register_display[i + 32]);
 
             $fdisplay(pipe_out, "RS Table");
-                $fdisplay(pipe_out, "  |   NPC  |   PC   | r1| r2| pr|rob| ar|      inst     |alu|mul");
+                // NPC | PC | reg1_pr_idx | reg2_pr_idx | pr_idx | rob_idx | ar_idx | inst | alu_func | mult_func
+                $fdisplay(pipe_out, "  |      NPC|       PC| r1| r2| pr|rob| ar|      inst     |alu|mul");
                 for (int i = 0; i < `N_RS_ENTRIES ; i++)
                     $fdisplay(pipe_out, "%2d|%h|%h| %2d| %2d| %2d| %2d| %2d|%5s: %h| %d| %d",
                         i, rs_table[i].NPC, rs_table[i].PC, rs_table[i].reg1_pr_idx, rs_table[i].reg2_pr_idx, rs_table[i].pr_idx, rs_table[i].rob_idx, rs_table[i].ar_idx, inst_name(rs_table[i].inst, rs_table[i].valid), rs_table[i].inst, rs_table[i].alu_func, rs_table[i].mult_func);
@@ -440,10 +479,11 @@ module testbench;
         $fdisplay(pipe_out, "EXECUTE");
 
             // fu_packet
-            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|vld");
+            $fdisplay(pipe_out, " | pr|rob| ar|targetPC|dest_value|rdm|wrm|halt|tkb|sel|vld| done | opa | opb |");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b | %b ",
-                    i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch, fu_packet[i].valid);
+                $fdisplay(pipe_out, "%1d| %2d| %2d| %2d|%h|%d| %b | %b |  %b | %b | %d | %b |%6b | %h | %h ",
+                    i, fu_packet[i].pr_idx, fu_packet[i].rob_idx, fu_packet[i].ar_idx, fu_packet[i].target_pc, fu_packet[i].dest_value, fu_packet[i].rd_mem, fu_packet[i].wr_mem, fu_packet[i].halt, fu_packet[i].take_branch,  done_fu_sel, fu_packet[i].valid , done_fu_out, fu_packet[i].opa, fu_packet[i].opb);
+
 
             // fu_rs_packet
             $fdisplay(pipe_out, "    alu_1: %b ", fu_rs_packet.alu_1);
@@ -485,19 +525,19 @@ module testbench;
             $fdisplay(pipe_out, " | t|ar|   NPC  |c");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
                 $fdisplay(pipe_out, "%1d|%2d|%2d|%h|%b",
-                    i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete);
+                    i, retire_packet[i].t_idx, retire_packet[i].ar_idx, retire_packet[i].NPC, retire_packet[i].complete );
 
             // retire_freelist_packet
             $fdisplay(pipe_out, " | told | vld ");
             for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
-                $fdisplay(pipe_out, "%1d|  %2d  |  %b  ", 
+                $fdisplay(pipe_out, "%1d|  %2d  |  %b   ", 
                     i, retire_freelist_packet[i].told_idx, retire_freelist_packet[i].valid);
 
             // retire_wfi_halt
             $fdisplay(pipe_out, "       %b       ", retire_wfi_halt);
 
             // halt
-            $fdisplay(pipe_out, "  %b  ", halt);
+            $fdisplay(pipe_out, "  %b |   %d  |   %h   |  %b | %h | %b |  %d   |  %d  |  %h ", halt, rob_retire_packet[0].dest_value, rob_retire_packet[0].opb, proc2mem_command, rob_retire_packet[0].NPC, proc2Dmem_fu_command, proc2Dmem_fu_addr, proc2mem_addr, proc2mem_data);
 
     endfunction
 
@@ -559,7 +599,13 @@ module testbench;
         for (int i = 0; i < `SUPERSCALAR_WAYS; i++)
             Imem2proc_data[i] = tb_mem[fetch_PC_out[i][`XLEN-1:3]];
     end
-
+/*
+    always@(posedge clock)
+	    begin
+		show_clk_count(cpi_fileno);
+        $display("@@@ mem address = %d", proc2mem_addr[31:3]);
+	    end
+*/
     always @(negedge clock) begin
         if(reset) begin
             $display("@@\n@@  %t : System STILL at reset, can't show anything\n@@",
@@ -593,7 +639,7 @@ module testbench;
                 $display("@@@ System halted on WFI instruction");
                 $display("@@@\n@@");
                 show_clk_count(cpi_fileno);
-                show_clk_count(wb_fileno);
+                // show_clk_count(wb_fileno);
                 $fclose(wb_fileno);
                 #1
                 $fclose(pipe_out);
@@ -634,41 +680,49 @@ module testbench;
         $dumpvars;
         $display("STARTING TESTBENCH!\n");
 
-        wb_fileno = $fopen("./writeback.out","w");
-        cpi_fileno = $fopen("./cpi_cal.out", "w");
+        if ($value$plusargs("FILENAME=%s", filename)) begin
+            $display("Loading memory file: %s", filename);
+        end else begin
+            $display("Loading default memory file: btest1.mem");
+            filename = "btest1";
+        end
+
+        wb_fileno = $fopen({"output/", filename, ".wb"},"w");
+        cpi_fileno = $fopen({"output/", filename, ".cpi"}, "w");
         pipe_out = $fopen("./visual_debugger/pipeline.out","w");
         $fdisplay(pipe_out, "superscalar_ways");
         $fdisplay(pipe_out, "%d", `SUPERSCALAR_WAYS);
-        $fdisplayh(wb_fileno, "%p",tb_mem[1]);
+        // $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         enable = 1;
         clock = 1;
 
         reset = 1'b0;
         // Pulse the reset signal
-        $fdisplay(wb_fileno, "@@\n@@\n@@  %t  Asserting System reset......", $realtime);
+        // $fdisplay(wb_fileno, "@@\n@@\n@@  %t  Asserting System reset......", $realtime);
         reset = 1'b1;
         @(posedge clock);
         @(posedge clock);
-        if ($value$plusargs("MEMORY=%s", program_memory_file)) begin
-            $display("Loading memory file: %s", program_memory_file);
-        end else begin
-            $display("Loading default memory file: btest1.mem");
-            program_memory_file = "btest1.mem";
-        end
-        $readmemh(program_memory_file, tb_mem);
+        
+
+        $readmemh({"programs/", filename, ".mem"}, tb_mem);
 	@(posedge clock);
         @(posedge clock);
-        $fdisplayh(wb_fileno, "%p",tb_mem[1]);
+        // $fdisplayh(wb_fileno, "%p",tb_mem[1]);
         `SD;
         show_clk_count(cpi_fileno);
         //dump_output();
         // This reset is at an odd time to avoid the pos & neg clock edges
         reset = 1'b0;
         $display("@@  %t  Deasserting System reset......\n@@\n@@", $realtime);
+        $display("@@@ Unified Memory contents hex on left, decimal on right: ");
         // show_mem_with_decimal(0,`MEM_64BIT_LINES - 1);
         show_clk_count(cpi_fileno);
-        //$fdisplay(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
-        //        clock_count+1, instr_count, 3.24);
+/*        repeat (1000) begin
+            #100
+            $display(wb_fileno, "@@  %0d cycles / %0d instrs = %f CPI\n@@",
+                clock_count+1, instr_count, 3.24);
+
+        end    */
         //$fdisplay(wb_fileno, "@@  %4.2f ns total time to execute\n@@\n",
         //        clock_count*`VERILOG_CLOCK_PERIOD);
         #100000

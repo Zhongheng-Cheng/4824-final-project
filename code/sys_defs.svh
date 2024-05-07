@@ -7,6 +7,7 @@
 //                                                                     //
 /////////////////////////////////////////////////////////////////////////
 
+
 `ifndef __SYS_DEFS_VH__
 `define __SYS_DEFS_VH__
 
@@ -195,7 +196,7 @@ typedef enum logic [4:0] {
 // actually, you might have to change this if you change VERILOG_CLOCK_PERIOD
 // JK you don't ^^^
 //
-`define SD #1
+`define SD #0
 
 
 // the RISCV register file zero register, any read of this register always
@@ -300,21 +301,23 @@ typedef union packed {
 
 } INST; //instruction typedef, this should cover all types of instructions
 
-typedef enum logic [$clog2(`N_FU_UNITS)-1:0] {
-	LS_1 = 0,
-	LS_2 = 1,
-	ALU_1 = 2,
-	ALU_2 = 3,
-	ALU_3 = 4,
-	MULT_1 = 5,
-	MULT_2 = 6,
-	BRANCH = 7
+typedef enum logic [$clog2(`N_FU_UNITS):0] {
+	FU_NONE = 0,
+	LS_1 = 1,
+	LS_2 = 2,
+	ALU_1 = 3,
+	ALU_2 = 4,
+	ALU_3 = 5,
+	MULT_1 = 6,
+	MULT_2 = 7,
+	BRANCH = 8
 } FU_SELECT;
 
 typedef enum logic [1:0]{
-	alu = 0,
-	mult = 1,
-	br = 2
+	OP_NONE = 0,
+	alu = 1,
+	mult = 2,
+	br = 3
 } OP_SELECT;
 
 
@@ -461,6 +464,12 @@ typedef struct packed {
 	logic [`XLEN-1:0] 				dest_value; 		    // instruction result from fu
     logic                           precise_state_enable;  // instruction is a taken branch and requires precise state handling
     logic [`XLEN-1:0]               target_pc;
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+	logic [`XLEN-1:0]      			read_data;
+
+	logic 						    rd_mem;
+    logic 						    wr_mem;
+	logic [`XLEN-1:0] 				opb;				  // opb
 } COMPLETE_ROB_PACKET;  
 
 typedef struct packed{
@@ -487,6 +496,10 @@ typedef struct packed {
     logic                        complete;
     logic [`XLEN-1:0]            NPC;
     logic [`XLEN-1:0]            dest_value;
+	logic [`XLEN-1:0]      		 result;
+
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+
 } RETIRE_PACKET;
 
 typedef struct packed {
@@ -530,8 +543,15 @@ typedef struct packed {
     logic                        halt; 					// halt inst e.g., wfi
     logic [`XLEN-1:0]            NPC;
     logic                        precise_state_enable;  // precise state is needed when retire
+	logic [`N_PHYS_REG_BITS-1:0] 	 pr_idx;         // destination (writeback) physical register
+	logic [`XLEN-1:0]      			read_data;
+
     logic [`XLEN-1:0]            target_pc;
     logic [`XLEN-1:0]            dest_value;
+	logic 						 rd_mem;
+    logic 						 wr_mem;
+	logic [`XLEN-1:0] 				opb;				  // opb
+
 } ROB_PACKET;
 
 /////////////// END ROB PACKETS //////////////
@@ -551,12 +571,17 @@ typedef struct packed{
 
     logic [`XLEN-1:0] 				target_pc;
     logic [`XLEN-1:0]      			dest_value;
+	logic [`XLEN-1:0]      			read_data;
+
 
 	logic 							rd_mem;  	  // instruction reads from memory
 	logic 							wr_mem;       // instruction writes to memory
 	logic 							halt;         // instruction is a halt
     logic 							take_branch;  // instruction is a taken branch
     logic 							valid;        // instruction is valid
+
+	logic [`XLEN-1:0] opa;				  // oba
+	logic [`XLEN-1:0] opb;				  // opb
 } FU_COMPLETE_PACKET;
 
 typedef struct packed {
