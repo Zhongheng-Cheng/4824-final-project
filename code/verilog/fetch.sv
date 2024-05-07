@@ -13,14 +13,14 @@
 module fetch (
 	input  																clock, 
 	input  																reset,
-	input  																branch_flush_en,   	// taken-branch signal
-	input  						 [`XLEN-1:0] 							target_pc,  		// target pc: use if branch_flush_en is TRUE
-	input  DISPATCH_FETCH_PACKET 										fetch_dispatch_in,  // stall data from dispatch stage
-	input  						 [`SUPERSCALAR_WAYS-1:0][(`XLEN*2)-1:0] Imem2proc_data,  	// Data coming from instruction-memory
+	input  																branch_flush_en,   	
+	input  						 [`XLEN-1:0] 							target_pc,  		
+	input  DISPATCH_FETCH_PACKET 										fetch_dispatch_in,  
+	input  						 [`SUPERSCALAR_WAYS-1:0][(`XLEN*2)-1:0] Imem2proc_data,  	
 
-	output logic 				 [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] 	PC_out,     		// PC currently being fetch from memory
-	output logic 				 [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] 	proc2Imem_addr,     // Address sent to Instruction memory
-	output FETCH_DISPATCH_PACKET [`SUPERSCALAR_WAYS-1:0] 				fetch_dispatch_out  // for Dispatch
+	output logic 				 [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] 	PC_out,     		
+	output logic 				 [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] 	proc2Imem_addr,     
+	output FETCH_DISPATCH_PACKET [`SUPERSCALAR_WAYS-1:0] 				fetch_dispatch_out  
 );
 	logic [`SUPERSCALAR_WAYS-1:0][`XLEN-1:0] PC_reg, next_PC;
 
